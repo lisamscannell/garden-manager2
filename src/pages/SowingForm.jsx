@@ -29,13 +29,22 @@ function SowingForm({ seed, onSave, onCancel }) {
     const e = validate()
     if (Object.keys(e).length) { setErrors(e); return }
 
-    const created = await fetch('/api/sowing-events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...form, seedId: seed.id }),
-    }).then(r => r.json())
-
-    onSave(created)
+    try {
+      const res = await fetch('/api/sowing-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, seedId: seed.id }),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        alert(`Server error: ${text}`)
+        return
+      }
+      const created = await res.json()
+      onSave(created)
+    } catch (err) {
+      alert(`Could not save: ${err.message}`)
+    }
   }
 
   return (
