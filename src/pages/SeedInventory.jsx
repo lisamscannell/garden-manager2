@@ -1,12 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import SeedForm from './SeedForm'
-
-const STORAGE_KEY = 'gm-seeds'
-
-function loadSeeds() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [] }
-  catch { return [] }
-}
 
 
 // ── CSV helpers ──────────────────────────────────────────────────────────────
@@ -130,7 +123,7 @@ function downloadTemplate() {
 // ── Component ────────────────────────────────────────────────────────────────
 
 function SeedInventory() {
-  const [seeds, setSeeds] = useState(loadSeeds)
+  const [seeds, setSeeds] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingSeed, setEditingSeed] = useState(null)
   const [importError, setImportError] = useState(null)
@@ -138,24 +131,34 @@ function SeedInventory() {
   const [category, setCategory] = useState('Edible')
   const fileInputRef = useRef(null)
 
-  function persist(updated) {
-    setSeeds(updated)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated))
-  }
+  useEffect(() => {
+    fetch('/api/seeds').then(r => r.json()).then(setSeeds)
+  }, [])
 
-  function handleSave(seed) {
+  async function handleSave(seed) {
     if (editingSeed) {
-      persist(seeds.map(s => s.id === seed.id ? seed : s))
+      const updated = await fetch(`/api/seeds/${seed.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(seed),
+      }).then(r => r.json())
+      setSeeds(prev => prev.map(s => s.id === updated.id ? updated : s))
       setEditingSeed(null)
     } else {
-      persist([...seeds, seed])
+      const created = await fetch('/api/seeds', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(seed),
+      }).then(r => r.json())
+      setSeeds(prev => [...prev, created])
       setShowForm(false)
     }
   }
 
-  function handleDelete(id) {
+  async function handleDelete(id) {
     if (!window.confirm('Remove this seed packet?')) return
-    persist(seeds.filter(s => s.id !== id))
+    await fetch(`/api/seeds/${id}`, { method: 'DELETE' })
+    setSeeds(prev => prev.filter(s => s.id !== id))
   }
 
   function handleImport(e) {
@@ -164,14 +167,21 @@ function SeedInventory() {
     setImportError(null)
 
     const reader = new FileReader()
-    reader.onload = (evt) => {
+    reader.onload = async (evt) => {
       const rows = parseCSV(evt.target.result)
       if (rows.length === 0) {
         setImportError('No valid rows found. Make sure your CSV uses the template headers.')
         return
       }
-      persist([...seeds, ...rows])
-      alert(`Imported ${rows.length} seed packet${rows.length !== 1 ? 's' : ''}.`)
+      const created = await Promise.all(rows.map(row =>
+        fetch('/api/seeds', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(row),
+        }).then(r => r.json())
+      ))
+      setSeeds(prev => [...prev, ...created])
+      alert(`Imported ${created.length} seed packet${created.length !== 1 ? 's' : ''}.`)
     }
     reader.readAsText(file)
 
