@@ -62,3 +62,104 @@
   .nav-link { font-size: 0.75rem; padding: 0.35rem 0.6rem; }
   .page-content { padding: 1.25rem 1rem; }
 }
+/* Frost Dates Page */
+.page-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  color: var(--soil);
+  margin-bottom: 0.5rem;
+}
+
+.page-subtitle {
+  color: #6b5b47;
+  margin-bottom: 2rem;
+  font-size: 1rem;
+}
+
+.frost-banner {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  background: var(--moss);
+  color: white;
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 2rem;
+}
+
+.frost-banner-number {
+  font-family: 'Playfair Display', serif;
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+.frost-banner-label {
+  font-size: 1.1rem;
+  opacity: 0.9;
+}
+
+.frost-card {
+  background: white;
+  border: 1px solid rgba(74,103,65,0.15);
+  border-radius: 18px;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 520px;
+  box-shadow: 0 4px 20px rgba(59,42,26,0.06);
+}
+
+.frost-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.frost-field label {
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--soil);
+}
+
+.field-hint {
+  font-size: 0.8rem;
+  color: #9a8878;
+  line-height: 1.4;
+}
+
+.frost-field input {
+  padding: 0.65rem 1rem;
+  border: 1px solid rgba(74,103,65,0.25);
+  border-radius: 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  color: var(--soil);
+  background: var(--cream);
+  width: 100%;
+  max-width: 220px;
+}
+
+.frost-field input:focus {
+  outline: none;
+  border-color: var(--moss);
+}
+
+.save-btn {
+  align-self: flex-start;
+  background: var(--moss);
+  color: white;
+  border: none;
+  border-radius: 99px;
+  padding: 0.75rem 1.75rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.save-btn:hover {
+  background: var(--soil);
+  transform: translateY(-1px);
+}
