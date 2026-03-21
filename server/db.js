@@ -31,4 +31,18 @@ db.exec(`
   )
 `)
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS sowing_events (
+    id              TEXT PRIMARY KEY,
+    seedId          TEXT NOT NULL REFERENCES seeds(id),
+    actualSowDate   TEXT NOT NULL,
+    emergenceDate   TEXT,
+    transplantDate  TEXT,
+    sowingMethod    TEXT NOT NULL,
+    sowingContainer TEXT,
+    sowingStatus    TEXT NOT NULL DEFAULT 'Active',
+    notes           TEXT
+  )
+`)
+
 export default db

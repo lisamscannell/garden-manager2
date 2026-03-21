@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import SeedForm from './SeedForm'
+import SowingForm from './SowingForm'
 
 
 // ── CSV helpers ──────────────────────────────────────────────────────────────
@@ -126,6 +127,7 @@ function SeedInventory() {
   const [seeds, setSeeds] = useState([])
   const [showForm, setShowForm] = useState(false)
   const [editingSeed, setEditingSeed] = useState(null)
+  const [sowingForSeed, setSowingForSeed] = useState(null)
   const [importError, setImportError] = useState(null)
   const [showAll, setShowAll] = useState(false)
   const [category, setCategory] = useState('Edible')
@@ -189,8 +191,21 @@ function SeedInventory() {
     e.target.value = ''
   }
 
+  if (sowingForSeed) {
+    return <SowingForm
+      seed={sowingForSeed}
+      onSave={() => { setSowingForSeed(null); setEditingSeed(sowingForSeed) }}
+      onCancel={() => { setSowingForSeed(null); setEditingSeed(sowingForSeed) }}
+    />
+  }
+
   if (editingSeed) {
-    return <SeedForm onSave={handleSave} onCancel={() => setEditingSeed(null)} initialData={editingSeed} />
+    return <SeedForm
+      onSave={handleSave}
+      onCancel={() => setEditingSeed(null)}
+      initialData={editingSeed}
+      onNewSowingEvent={seed => { setEditingSeed(null); setSowingForSeed(seed) }}
+    />
   }
 
   if (showForm) {

@@ -32,7 +32,7 @@ const EMPTY_FORM = {
   notes: '',
 }
 
-function SeedForm({ onSave, onCancel, initialData }) {
+function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent }) {
   const isEditing = Boolean(initialData)
   const [form, setForm] = useState(isEditing ? { ...EMPTY_FORM, ...initialData } : EMPTY_FORM)
   const [errors, setErrors] = useState({})
@@ -275,6 +275,14 @@ function SeedForm({ onSave, onCancel, initialData }) {
         <button className="save-btn" onClick={handleSave}>{isEditing ? 'Save Changes' : 'Save Seed Packet'}</button>
         <button className="ghost-btn" onClick={onCancel}>Cancel</button>
       </div>
+
+      {isEditing && onNewSowingEvent && form.status !== 'Gone' && (
+        <div className="sowing-action">
+          <button className="sowing-btn" onClick={() => onNewSowingEvent(initialData)}>
+            🌱 New Sowing Event
+          </button>
+        </div>
+      )}
     </div>
   )
 }
