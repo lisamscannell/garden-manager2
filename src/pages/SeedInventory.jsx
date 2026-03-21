@@ -215,7 +215,10 @@ function SeedInventory() {
         </div>
       ) : (
         <div className="seed-list">
-          {seeds.filter(s => showAll || s.status !== 'Gone').map(seed => (
+          {seeds
+            .filter(s => showAll || s.status !== 'Gone')
+            .sort((a, b) => a.plantType.localeCompare(b.plantType) || a.variety.localeCompare(b.variety))
+            .map(seed => (
             <div key={seed.id} className="seed-card">
               <div className="seed-card-main" onClick={() => setEditingSeed(seed)} style={{ cursor: 'pointer' }}>
                 <div className="seed-card-title">
