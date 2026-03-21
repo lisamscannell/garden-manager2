@@ -139,6 +139,7 @@ function SeedInventory() {
   const [showForm, setShowForm] = useState(false)
   const [editingSeed, setEditingSeed] = useState(null)
   const [importError, setImportError] = useState(null)
+  const [showAll, setShowAll] = useState(false)
   const fileInputRef = useRef(null)
 
   function persist(updated) {
@@ -214,7 +215,7 @@ function SeedInventory() {
         </div>
       ) : (
         <div className="seed-list">
-          {seeds.map(seed => (
+          {seeds.filter(s => showAll || s.status !== 'Gone').map(seed => (
             <div key={seed.id} className="seed-card">
               <div className="seed-card-main" onClick={() => setEditingSeed(seed)} style={{ cursor: 'pointer' }}>
                 <div className="seed-card-title">
@@ -239,6 +240,19 @@ function SeedInventory() {
             </div>
           ))}
         </div>
+      )}
+
+      {!showAll && seeds.some(s => s.status === 'Gone') && (
+        <p className="show-all-toggle">
+          <button className="ghost-btn" onClick={() => setShowAll(true)}>
+            Show Gone packets ({seeds.filter(s => s.status === 'Gone').length})
+          </button>
+        </p>
+      )}
+      {showAll && (
+        <p className="show-all-toggle">
+          <button className="ghost-btn" onClick={() => setShowAll(false)}>Hide Gone packets</button>
+        </p>
       )}
     </div>
   )
