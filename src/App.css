@@ -1,0 +1,64 @@
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.top-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background: white;
+  border-bottom: 1px solid rgba(74,103,65,0.15);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.nav-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--moss);
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-link {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--soil);
+  padding: 0.4rem 0.85rem;
+  border-radius: 99px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.nav-link:hover {
+  background: var(--sky);
+  color: var(--moss);
+}
+
+.nav-link.active {
+  background: var(--moss);
+  color: white;
+}
+
+.page-content {
+  flex: 1;
+  padding: 2rem;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .top-nav { padding: 0.85rem 1rem; }
+  .nav-logo { font-size: 1rem; }
+  .nav-link { font-size: 0.75rem; padding: 0.35rem 0.6rem; }
+  .page-content { padding: 1.25rem 1rem; }
+}
