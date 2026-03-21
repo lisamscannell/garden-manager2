@@ -163,3 +163,257 @@
   background: var(--soil);
   transform: translateY(-1px);
 }
+
+/* ── Seed Inventory – List View ── */
+.inventory-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #9a8878;
+}
+
+.empty-state p + p {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.seed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.seed-card {
+  background: white;
+  border: 1px solid rgba(74,103,65,0.15);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 10px rgba(59,42,26,0.05);
+}
+
+.seed-card-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.seed-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.seed-variety {
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--soil);
+}
+
+.seed-plant-type {
+  font-size: 0.85rem;
+  color: #9a8878;
+}
+
+.seed-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.seed-card-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  font-size: 0.82rem;
+  color: #9a8878;
+}
+
+/* Badges */
+.badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.2rem 0.65rem;
+  border-radius: 99px;
+}
+
+.badge-green  { background: var(--sky); color: var(--moss); }
+.badge-orange { background: #fde8cc; color: #8b4a0e; }
+.badge-gray   { background: #ece9e4; color: #7a6e65; }
+.badge-outline {
+  background: transparent;
+  border: 1px solid rgba(74,103,65,0.3);
+  color: var(--moss);
+}
+.badge-sky { background: var(--sprout); color: var(--soil); }
+
+.delete-btn {
+  background: none;
+  border: none;
+  color: #c0b0a0;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.delete-btn:hover {
+  color: #c0392b;
+  background: #fde8e8;
+}
+
+/* ── Seed Form ── */
+.seed-form-page {
+  max-width: 720px;
+}
+
+.seed-form-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.ghost-btn {
+  background: none;
+  border: none;
+  color: var(--moss);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  transition: color 0.15s;
+}
+
+.ghost-btn:hover { color: var(--soil); }
+
+.form-section {
+  background: white;
+  border: 1px solid rgba(74,103,65,0.15);
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 10px rgba(59,42,26,0.04);
+}
+
+.form-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--soil);
+  margin-bottom: 1.25rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.5rem;
+}
+
+.field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.field-wrap.full-width {
+  grid-column: 1 / -1;
+}
+
+.field-wrap label {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--soil);
+}
+
+.field-wrap input,
+.field-wrap select,
+.field-wrap textarea {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid rgba(74,103,65,0.25);
+  border-radius: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  color: var(--soil);
+  background: var(--cream);
+  width: 100%;
+  transition: border-color 0.15s;
+}
+
+.field-wrap input:focus,
+.field-wrap select:focus,
+.field-wrap textarea:focus {
+  outline: none;
+  border-color: var(--moss);
+}
+
+.field-wrap textarea {
+  resize: vertical;
+}
+
+.input-error {
+  border-color: #c0392b !important;
+}
+
+.field-error {
+  font-size: 0.78rem;
+  color: #c0392b;
+}
+
+.req {
+  color: var(--accent);
+}
+
+.checkbox-group {
+  display: flex;
+  gap: 1.5rem;
+  padding: 0.4rem 0;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--moss);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+/* ── Mobile – Seed pages ── */
+@media (max-width: 480px) {
+  .inventory-header { flex-direction: column; align-items: flex-start; }
+  .form-grid { grid-template-columns: 1fr; }
+  .field-wrap.full-width { grid-column: 1; }
+  .seed-form-header { flex-direction: column; align-items: flex-start; }
+  .checkbox-group { flex-direction: column; gap: 0.75rem; }
+}
