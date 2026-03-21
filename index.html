@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Garden Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --soil:    #3b2a1a;
+      --moss:    #4a6741;
+      --sage:    #8aaa7b;
+      --sprout:  #b5cc8e;
+      --cream:   #f5f0e8;
+      --sky:     #d4e8c2;
+      --accent:  #c8742a;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--cream);
+      color: var(--soil);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Animated background ── */
+    .bg-layer {
+      position: fixed; inset: 0; z-index: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 10% 90%, #c9e0a8 0%, transparent 55%),
+        radial-gradient(ellipse 60% 50% at 90% 10%, #e8d9b5 0%, transparent 55%),
+        var(--cream);
+    }
+    /* Subtle grain texture */
+    .bg-layer::after {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      background-size: 200px 200px;
+      pointer-events: none;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2rem;
+      border-bottom: 1px solid rgba(74,103,65,0.15);
+    }
+    .nav-logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.15rem; font-weight: 700;
+      color: var(--moss);
+      text-decoration: none;
+    }
+    .nav-logo svg { width: 28px; height: 28px; }
+    .nav-badge {
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.08em;
+      background: var(--moss); color: white;
+      padding: 0.2rem 0.55rem; border-radius: 99px;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem 3rem;
+    }
+    .season-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.75rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--moss);
+      border: 1px solid var(--sage);
+      background: rgba(138,170,123,0.12);
+      padding: 0.3rem 0.9rem; border-radius: 99px;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.6s ease both;
+    }
+    .season-chip span { font-size: 1rem; }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.8rem, 8vw, 5.5rem);
+      line-height: 1.05;
+      color: var(--soil);
+      max-width: 720px;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+    h1 em {
+      font-style: italic; color: var(--moss);
+    }
+    .subtitle {
+      margin-top: 1.2rem;
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      font-weight: 300;
+      color: #6b5b47;
+      max-width: 480px;
+      line-height: 1.6;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    /* ── Today card ── */
+    .today-card {
+      margin-top: 2.5rem;
+      background: white;
+      border: 1px solid rgba(74,103,65,0.15);
+      border-radius: 18px;
+      padding: 1.5rem 2rem;
+      width: 100%; max-width: 540px;
+      box-shadow: 0 4px 30px rgba(59,42,26,0.07);
+      animation: fadeUp 0.7s 0.35s ease both;
+    }
+    .card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .card-title {
+      font-size: 0.7rem; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--sage);
+    }
+    .card-date {
+      font-size: 0.8rem; color: #9a8878;
+    }
+    .task-list { list-style: none; display: flex; flex-direction: column; gap: 0.65rem; }
+    .task-item {
+      display: flex; align-items: center; gap: 0.75rem;
+      font-size: 0.95rem; color: var(--soil);
+    }
+    .task-icon {
+      width: 32px; height: 32px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0;
+    }
+    .task-icon.water  { background: #ddeeff; }
+    .task-icon.plant  { background: #d9f0d0; }
+    .task-icon.frost  { background: #ffeedd; }
+    .task-placeholder {
+      font-size: 0.88rem; color: #b0a090; font-style: italic; text-align: center;
+      padding: 0.5rem 0;
+    }
+
+    /* ── CTA button ── */
+    .cta-row {
+      margin-top: 2rem;
+      display: flex; gap: 0.75rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.7s 0.45s ease both;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      padding: 0.8rem 1.6rem; border-radius: 99px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
+      cursor: pointer; border: none; text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary {
+      background: var(--moss); color: white;
+      box-shadow: 0 4px 18px rgba(74,103,65,0.3);
+    }
+    .btn-primary:hover { box-shadow: 0 6px 24px rgba(74,103,65,0.45); transform: translateY(-1px); }
+    .btn-secondary {
+      background: white; color: var(--moss);
+      border: 1px solid var(--sage);
+    }
+    .btn-secondary:hover { background: var(--sky); transform: translateY(-1px); }
+
+    /* ── Feature pills ── */
+    .features {
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem;
+      margin-top: 2.5rem;
+      padding: 0 1rem;
+      animation: fadeUp 0.7s 0.55s ease both;
+    }
+    .pill {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.8rem; font-weight: 400;
+      color: #5a4a3a;
+      background: rgba(255,255,255,0.7);
+      border: 1px solid rgba(74,103,65,0.18);
+      padding: 0.35rem 0.85rem; border-radius: 99px;
+    }
+    .pill span { font-size: 0.9rem; }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.75rem; color: #b0a090;
+      border-top: 1px solid rgba(74,103,65,0.1);
+    }
+
+    /* ── Floating leaf decorations ── */
+    .leaf {
+      position: fixed; pointer-events: none; opacity: 0.12; z-index: 0;
+      font-size: 3rem;
+      animation: drift linear infinite;
+    }
+    .leaf:nth-child(1) { left:  5%; top: 15%; font-size: 2.5rem; animation-duration: 18s; animation-delay: 0s; }
+    .leaf:nth-child(2) { right: 8%; top: 30%; font-size: 4rem;   animation-duration: 22s; animation-delay: -6s; }
+    .leaf:nth-child(3) { left: 15%; bottom: 20%; font-size: 3.5rem; animation-duration: 26s; animation-delay: -12s; }
+    .leaf:nth-child(4) { right: 3%; bottom: 35%; font-size: 2rem;  animation-duration: 20s; animation-delay: -4s; }
+
+    @keyframes drift {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      25%       { transform: translateY(-12px) rotate(5deg); }
+      75%       { transform: translateY(8px) rotate(-4deg); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Mobile tweaks ── */
+    @media (max-width: 480px) {
+      nav { padding: 1rem 1.25rem; }
+      .today-card { padding: 1.25rem 1.25rem; }
+      .cta-row .btn { padding: 0.75rem 1.3rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Background -->
+  <div class="bg-layer"></div>
+
+  <!-- Floating leaves -->
+  <div class="leaf" aria-hidden="true">🌿</div>
+  <div class="leaf" aria-hidden="true">🍃</div>
+  <div class="leaf" aria-hidden="true">🌱</div>
+  <div class="leaf" aria-hidden="true">🌿</div>
+
+  <div class="page">
+
+    <!-- Nav -->
+    <nav>
+      <a href="/" class="nav-logo">
+        <!-- Seedling icon -->
+        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 24V14" stroke="#4a6741" stroke-width="2" stroke-linecap="round"/>
+          <path d="M14 14 C14 8, 7 6, 7 6 C7 6, 7 13, 14 14" fill="#4a6741"/>
+          <path d="M14 17 C14 11, 21 9, 21 9 C21 9, 21 16, 14 17" fill="#8aaa7b"/>
+        </svg>
+        Garden Manager
+      </a>
+      <span class="nav-badge">v0.1 — Hello World</span>
+    </nav>
+
+    <!-- Hero -->
+    <main class="hero">
+
+      <div class="season-chip"><span>🌤</span> Planning Season</div>
+
+      <h1>Your garden,<br /><em>always in season.</em></h1>
+
+      <p class="subtitle">
+        Track seeds, plan plantings, and know exactly what your garden needs — every single day.
+      </p>
+
+      <!-- Today's tasks card (placeholder data) -->
+      <div class="today-card">
+        <div class="card-header">
+          <span class="card-title">Today's Garden Tasks</span>
+          <span class="card-date" id="today-date"></span>
+        </div>
+        <ul class="task-list">
+          <li class="task-item">
+            <div class="task-icon plant">🌱</div>
+            <span>Start tomato seeds — 8 weeks before last frost</span>
+          </li>
+          <li class="task-item">
+            <div class="task-icon water">💧</div>
+            <span>Water pepper seedlings — Day 4 since germination</span>
+          </li>
+          <li class="task-item">
+            <div class="task-icon frost">🌡</div>
+            <span>Frost advisory tonight — cover hardening basil</span>
+          </li>
+        </ul>
+        <p class="task-placeholder">← These will be your real tasks once you add your seeds!</p>
+      </div>
+
+      <!-- CTAs -->
+      <div class="cta-row">
+        <a href="#" class="btn btn-primary">🌿 Get Started</a>
+        <a href="#" class="btn btn-secondary">📦 Add Seed Packet</a>
+      </div>
+
+      <!-- Feature pills -->
+      <div class="features">
+        <div class="pill"><span>📅</span> Frost date tracking</div>
+        <div class="pill"><span>📦</span> Seed packet inventory</div>
+        <div class="pill"><span>🌱</span> Seed start management</div>
+        <div class="pill"><span>✅</span> Daily task checklist</div>
+      </div>
+
+    </main>
+
+    <footer>
+      Garden Manager &mdash; Built for your backyard. &nbsp;|&nbsp; Detroit, MI
+    </footer>
+
+  </div>
+
+  <script>
+    // Show today's date in the card
+    const d = new Date();
+    document.getElementById('today-date').textContent =
+      d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  </script>
+
+</body>
+</html>
