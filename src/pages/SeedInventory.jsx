@@ -137,6 +137,7 @@ function downloadTemplate() {
 function SeedInventory() {
   const [seeds, setSeeds] = useState(loadSeeds)
   const [showForm, setShowForm] = useState(false)
+  const [editingSeed, setEditingSeed] = useState(null)
   const [importError, setImportError] = useState(null)
   const fileInputRef = useRef(null)
 
@@ -146,8 +147,13 @@ function SeedInventory() {
   }
 
   function handleSave(seed) {
-    persist([...seeds, seed])
-    setShowForm(false)
+    if (editingSeed) {
+      persist(seeds.map(s => s.id === seed.id ? seed : s))
+      setEditingSeed(null)
+    } else {
+      persist([...seeds, seed])
+      setShowForm(false)
+    }
   }
 
   function handleDelete(id) {
@@ -174,6 +180,10 @@ function SeedInventory() {
 
     // Reset so the same file can be re-imported after a fix
     e.target.value = ''
+  }
+
+  if (editingSeed) {
+    return <SeedForm onSave={handleSave} onCancel={() => setEditingSeed(null)} initialData={editingSeed} />
   }
 
   if (showForm) {
@@ -206,7 +216,7 @@ function SeedInventory() {
         <div className="seed-list">
           {seeds.map(seed => (
             <div key={seed.id} className="seed-card">
-              <div className="seed-card-main">
+              <div className="seed-card-main" onClick={() => setEditingSeed(seed)} style={{ cursor: 'pointer' }}>
                 <div className="seed-card-title">
                   <span className="seed-variety">{seed.variety}</span>
                   <span className="seed-plant-type">{seed.plantType}</span>

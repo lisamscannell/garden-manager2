@@ -32,8 +32,9 @@ const EMPTY_FORM = {
   notes: '',
 }
 
-function SeedForm({ onSave, onCancel }) {
-  const [form, setForm] = useState(EMPTY_FORM)
+function SeedForm({ onSave, onCancel, initialData }) {
+  const isEditing = Boolean(initialData)
+  const [form, setForm] = useState(isEditing ? { ...EMPTY_FORM, ...initialData } : EMPTY_FORM)
   const [errors, setErrors] = useState({})
 
   function set(field, value) {
@@ -65,7 +66,7 @@ function SeedForm({ onSave, onCancel }) {
 
     const seed = {
       ...form,
-      id: `seed-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      id: isEditing ? initialData.id : `seed-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       variety: form.variety.trim(),
       vendor: form.vendor.trim(),
     }
@@ -75,7 +76,7 @@ function SeedForm({ onSave, onCancel }) {
   return (
     <div className="seed-form-page">
       <div className="seed-form-header">
-        <h1 className="page-title">Add Seed Packet</h1>
+        <h1 className="page-title">{isEditing ? 'Edit Seed Packet' : 'Add Seed Packet'}</h1>
         <button className="ghost-btn" onClick={onCancel}>← Back to inventory</button>
       </div>
 
@@ -271,7 +272,7 @@ function SeedForm({ onSave, onCancel }) {
       </section>
 
       <div className="form-actions">
-        <button className="save-btn" onClick={handleSave}>Save Seed Packet</button>
+        <button className="save-btn" onClick={handleSave}>{isEditing ? 'Save Changes' : 'Save Seed Packet'}</button>
         <button className="ghost-btn" onClick={onCancel}>Cancel</button>
       </div>
     </div>
