@@ -8,11 +8,6 @@ function loadSeeds() {
   catch { return [] }
 }
 
-const STATUS_CLASS = {
-  'In Stock': 'badge-green',
-  'Low': 'badge-orange',
-  'Gone': 'badge-gray',
-}
 
 // ── CSV helpers ──────────────────────────────────────────────────────────────
 
@@ -140,6 +135,7 @@ function SeedInventory() {
   const [editingSeed, setEditingSeed] = useState(null)
   const [importError, setImportError] = useState(null)
   const [showAll, setShowAll] = useState(false)
+  const [category, setCategory] = useState('Edible')
   const fileInputRef = useRef(null)
 
   function persist(updated) {
@@ -194,16 +190,19 @@ function SeedInventory() {
   return (
     <div>
       <div className="inventory-header">
-        <div>
-          <h1 className="page-title">Seed Inventory</h1>
-          <p className="page-subtitle">{seeds.length} packet{seeds.length !== 1 ? 's' : ''} on hand</p>
-        </div>
-        <div className="inventory-actions">
-          <button className="ghost-btn" onClick={downloadTemplate}>Download Template</button>
-          <button className="ghost-btn" onClick={() => fileInputRef.current.click()}>Import CSV</button>
-          <input ref={fileInputRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
-          <button className="save-btn" onClick={() => setShowForm(true)}>+ Add Seed Packet</button>
-        </div>
+        <h1 className="page-title">Seed Inventory</h1>
+        <button className="save-btn save-btn-sm" onClick={() => setShowForm(true)}>+ Add</button>
+        <input ref={fileInputRef} type="file" accept=".csv" style={{ display: 'none' }} onChange={handleImport} />
+      </div>
+
+      <div className="category-toggle">
+        {['Edible', 'Flower', 'Foliage'].map(cat => (
+          <button
+            key={cat}
+            className={`category-btn${category === cat ? ' category-btn-active' : ''}`}
+            onClick={() => setCategory(cat)}
+          >{cat}</button>
+        ))}
       </div>
 
       {importError && <p className="import-error">{importError}</p>}
@@ -216,28 +215,14 @@ function SeedInventory() {
       ) : (
         <div className="seed-list">
           {seeds
+            .filter(s => s.category === category)
             .filter(s => showAll || s.status !== 'Gone')
             .sort((a, b) => a.plantType.localeCompare(b.plantType) || a.variety.localeCompare(b.variety))
             .map(seed => (
             <div key={seed.id} className="seed-card">
-              <div className="seed-card-main" onClick={() => setEditingSeed(seed)} style={{ cursor: 'pointer' }}>
-                <div className="seed-card-title">
-                  <span className="seed-variety">{seed.variety}</span>
-                  <span className="seed-plant-type">{seed.plantType}</span>
-                </div>
-                <div className="seed-card-meta">
-                  <span className={`badge ${STATUS_CLASS[seed.status] || 'badge-green'}`}>{seed.status}</span>
-                  <span className="badge badge-outline">{seed.category}</span>
-                  {seed.seasons.map(s => (
-                    <span key={s} className="badge badge-sky">{s}</span>
-                  ))}
-                </div>
-                <div className="seed-card-details">
-                  <span>{seed.vendor}</span>
-                  {seed.itemNumber && <span>#{seed.itemNumber}</span>}
-                  {seed.maturityDays && <span>{seed.maturityDays}d to maturity</span>}
-                  {seed.preferredSowingType && <span>{seed.preferredSowingType}</span>}
-                </div>
+              <div className="seed-card-main" onClick={() => setEditingSeed(seed)}>
+                <span className="seed-variety">{seed.variety}</span>
+                <span className="seed-plant-type">{seed.plantType}</span>
               </div>
               <button className="delete-btn" onClick={() => handleDelete(seed.id)} title="Remove packet">✕</button>
             </div>
@@ -245,10 +230,10 @@ function SeedInventory() {
         </div>
       )}
 
-      {!showAll && seeds.some(s => s.status === 'Gone') && (
+      {!showAll && seeds.some(s => s.category === category && s.status === 'Gone') && (
         <p className="show-all-toggle">
           <button className="ghost-btn" onClick={() => setShowAll(true)}>
-            Show Gone packets ({seeds.filter(s => s.status === 'Gone').length})
+            Show Gone packets ({seeds.filter(s => s.category === category && s.status === 'Gone').length})
           </button>
         </p>
       )}
@@ -257,6 +242,11 @@ function SeedInventory() {
           <button className="ghost-btn" onClick={() => setShowAll(false)}>Hide Gone packets</button>
         </p>
       )}
+
+      <div className="bottom-actions">
+        <button className="ghost-btn" onClick={downloadTemplate}>Download Template</button>
+        <button className="ghost-btn" onClick={() => fileInputRef.current.click()}>Import CSV</button>
+      </div>
     </div>
   )
 }

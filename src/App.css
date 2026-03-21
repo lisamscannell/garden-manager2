@@ -159,19 +159,28 @@
   transition: background 0.15s, transform 0.15s;
 }
 
+.save-btn-sm {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+}
+
 .save-btn:hover {
   background: var(--soil);
   transform: translateY(-1px);
 }
 
 /* ── Seed Inventory – List View ── */
+.inventory-header .page-title {
+  font-size: 1.5rem;
+  margin-bottom: 0;
+}
+
 .inventory-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  align-items: center;
+  justify-content: flex-start;
   gap: 1rem;
   margin-bottom: 2rem;
-  flex-wrap: wrap;
 }
 
 .inventory-actions {
@@ -181,9 +190,47 @@
   flex-wrap: wrap;
 }
 
+.category-toggle {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.category-btn {
+  padding: 0.45rem 1.1rem;
+  border-radius: 99px;
+  border: 1px solid rgba(74,103,65,0.3);
+  background: transparent;
+  color: var(--moss);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.category-btn:hover {
+  background: var(--sky);
+}
+
+.category-btn-active {
+  background: var(--moss);
+  color: white;
+  border-color: var(--moss);
+}
+
 .show-all-toggle {
   margin-top: 1rem;
   text-align: center;
+}
+
+.bottom-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(74,103,65,0.1);
 }
 
 .import-error {
@@ -206,58 +253,41 @@
 .seed-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.4rem;
 }
 
 .seed-card {
   background: white;
   border: 1px solid rgba(74,103,65,0.15);
-  border-radius: 14px;
-  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  padding: 0.6rem 0.85rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  box-shadow: 0 2px 10px rgba(59,42,26,0.05);
+  gap: 0.5rem;
 }
 
 .seed-card-main {
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.seed-card-title {
-  display: flex;
   align-items: baseline;
-  gap: 0.6rem;
-  flex-wrap: wrap;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
 .seed-variety {
   font-weight: 600;
-  font-size: 1rem;
+  font-size: 0.95rem;
   color: var(--soil);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .seed-plant-type {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #9a8878;
-}
-
-.seed-card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.seed-card-details {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  font-size: 0.82rem;
-  color: #9a8878;
+  white-space: nowrap;
 }
 
 /* Badges */
