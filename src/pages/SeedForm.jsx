@@ -276,7 +276,7 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent }) {
         <button className="ghost-btn" onClick={onCancel}>Cancel</button>
       </div>
 
-      {isEditing && onNewSowingEvent && form.status !== 'Gone' && (
+      {isEditing && onNewSowingEvent && (
         <div className="sowing-action">
           <button className="sowing-btn" onClick={() => onNewSowingEvent(initialData)}>
             🌱 New Sowing Event

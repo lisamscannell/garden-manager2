@@ -509,7 +509,28 @@
   color: #9a8878;
 }
 
+.sowing-seed-id {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: #b0a090;
+  font-family: monospace;
+}
+
 /* ── Seed Starts list ── */
+.starts-group {
+  margin-bottom: 1.5rem;
+}
+
+.starts-group-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9a8878;
+  margin-bottom: 0.5rem;
+}
+
+
 .starts-card {
   justify-content: space-between;
 }

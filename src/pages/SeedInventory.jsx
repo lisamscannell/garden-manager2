@@ -194,7 +194,7 @@ function SeedInventory() {
   if (sowingForSeed) {
     return <SowingForm
       seed={sowingForSeed}
-      onSave={() => { setSowingForSeed(null); setEditingSeed(sowingForSeed) }}
+      onSave={() => { setSowingForSeed(null) }}
       onCancel={() => { setSowingForSeed(null); setEditingSeed(sowingForSeed) }}
     />
   }

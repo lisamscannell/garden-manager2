@@ -2,16 +2,19 @@ import { useState } from 'react'
 
 const today = () => new Date().toISOString().split('T')[0]
 
-function SowingForm({ seed, onSave, onCancel }) {
-  const [form, setForm] = useState({
-    actualSowDate: today(),
-    emergenceDate: '',
-    transplantDate: '',
-    sowingMethod: '',
-    sowingContainer: '',
-    sowingStatus: 'Active',
-    notes: '',
-  })
+const EMPTY_FORM = {
+  actualSowDate: today(),
+  emergenceDate: '',
+  transplantDate: '',
+  sowingMethod: '',
+  sowingContainer: '',
+  sowingStatus: 'Active',
+  notes: '',
+}
+
+function SowingForm({ seed, initialData, onSave, onCancel }) {
+  const isEditing = Boolean(initialData)
+  const [form, setForm] = useState(isEditing ? { ...EMPTY_FORM, ...initialData } : EMPTY_FORM)
   const [errors, setErrors] = useState({})
 
   function set(field, value) {
@@ -30,18 +33,26 @@ function SowingForm({ seed, onSave, onCancel }) {
     if (Object.keys(e).length) { setErrors(e); return }
 
     try {
-      const res = await fetch('/api/sowing-events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, seedId: seed.id }),
-      })
+      let res
+      if (isEditing) {
+        res = await fetch(`/api/sowing-events/${initialData.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(form),
+        })
+      } else {
+        res = await fetch('/api/sowing-events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...form, seedId: seed.id }),
+        })
+      }
       if (!res.ok) {
         const text = await res.text()
         alert(`Server error: ${text}`)
         return
       }
-      const created = await res.json()
-      onSave(created)
+      onSave(await res.json())
     } catch (err) {
       alert(`Could not save: ${err.message}`)
     }
@@ -50,15 +61,16 @@ function SowingForm({ seed, onSave, onCancel }) {
   return (
     <div className="seed-form-page">
       <div className="seed-form-header">
-        <h1 className="page-title">New Sowing Event</h1>
-        <button className="ghost-btn" onClick={onCancel}>← Back to packet</button>
+        <h1 className="page-title">{isEditing ? 'Edit Sowing Event' : 'New Sowing Event'}</h1>
+        <button className="ghost-btn" onClick={onCancel}>← Back</button>
       </div>
 
       {/* Seed context — read only */}
       <div className="sowing-seed-context">
         <span className="sowing-seed-label">Seed Packet</span>
-        <span className="sowing-seed-value">{seed.variety}</span>
-        <span className="sowing-seed-type">{seed.plantType}</span>
+        <span className="sowing-seed-value">{isEditing ? initialData.variety : seed.variety}</span>
+        <span className="sowing-seed-type">{isEditing ? initialData.plantType : seed.plantType}</span>
+        {isEditing && <span className="sowing-seed-id">{initialData.id}</span>}
       </div>
 
       <section className="form-section">
@@ -91,6 +103,7 @@ function SowingForm({ seed, onSave, onCancel }) {
               <option value="">Select…</option>
               <option>Cell Pack</option>
               <option>Soil Block</option>
+              <option>Milk Jug Greenhouse</option>
               <option>Other</option>
             </select>
           </div>
@@ -131,7 +144,9 @@ function SowingForm({ seed, onSave, onCancel }) {
       </section>
 
       <div className="form-actions">
-        <button className="save-btn" onClick={handleSave}>Save Sowing Event</button>
+        <button className="save-btn" onClick={handleSave}>
+          {isEditing ? 'Save Changes' : 'Save Sowing Event'}
+        </button>
         <button className="ghost-btn" onClick={onCancel}>Cancel</button>
       </div>
     </div>
