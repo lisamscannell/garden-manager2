@@ -35,7 +35,8 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS sowing_events (
     id              TEXT PRIMARY KEY,
     seedId          TEXT NOT NULL REFERENCES seeds(id),
-    actualSowDate   TEXT NOT NULL,
+    plannedSowDate  TEXT,
+    actualSowDate   TEXT,
     emergenceDate   TEXT,
     transplantDate  TEXT,
     sowingMethod    TEXT NOT NULL,
@@ -44,5 +45,22 @@ db.exec(`
     notes           TEXT
   )
 `)
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS tasks (
+    id            TEXT PRIMARY KEY,
+    sowingEventId TEXT NOT NULL REFERENCES sowing_events(id),
+    category      TEXT NOT NULL,
+    description   TEXT,
+    notes         TEXT,
+    dueDate       TEXT NOT NULL,
+    status        TEXT NOT NULL DEFAULT 'Pending'
+  )
+`)
+
+// Add plannedSowDate to existing databases that predate this column
+try {
+  db.exec('ALTER TABLE sowing_events ADD COLUMN plannedSowDate TEXT')
+} catch (_) { /* column already exists */ }
 
 export default db

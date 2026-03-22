@@ -62,6 +62,76 @@
   .nav-link { font-size: 0.75rem; padding: 0.35rem 0.6rem; }
   .page-content { padding: 1.25rem 1rem; }
 }
+/* Weather Card */
+.weather-card {
+  background: white;
+  border: 1px solid rgba(74,103,65,0.15);
+  border-radius: 16px;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  box-shadow: 0 2px 10px rgba(59,42,26,0.04);
+}
+
+.weather-temp {
+  font-family: 'Playfair Display', serif;
+  font-size: 2.5rem;
+  color: var(--soil);
+  line-height: 1;
+}
+
+.weather-desc {
+  font-size: 1rem;
+  color: #6b5b47;
+  flex: 1;
+}
+
+.weather-range {
+  font-size: 0.88rem;
+  color: #9a8878;
+  white-space: nowrap;
+}
+
+.weather-precip {
+  font-size: 0.88rem;
+  color: #9a8878;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.weather-forecast {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.weather-forecast-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 60px;
+  background: var(--cream);
+  border-radius: 10px;
+  padding: 0.4rem 0.6rem;
+}
+
+.weather-forecast-label {
+  font-size: 0.75rem;
+  color: #9a8878;
+  font-weight: 500;
+}
+
+.weather-forecast-val {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--soil);
+}
+
 /* Frost Dates Page */
 .page-title {
   font-family: 'Playfair Display', serif;
@@ -273,6 +343,7 @@
   align-items: baseline;
   gap: 0.5rem;
   cursor: pointer;
+  flex-wrap: wrap;
 }
 
 .seed-variety {
@@ -429,6 +500,30 @@
   color: var(--accent);
 }
 
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.calc-btn {
+  background: none;
+  border: none;
+  color: var(--moss);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.calc-btn:hover {
+  color: var(--soil);
+}
+
 .checkbox-group {
   display: flex;
   gap: 1.5rem;
@@ -519,6 +614,12 @@
 
 .sowing-btn:hover {
   background: var(--sprout);
+}
+
+.current-sowings {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(74,103,65,0.1);
 }
 
 /* ── Sowing Form – seed context banner ── */

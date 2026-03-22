@@ -1,4 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+
+const INACTIVE = ['Failed', 'Cancelled', 'Completed']
+
+function formatDate(iso) {
+  if (!iso) return '—'
+  const [y, m, d] = iso.split('-')
+  return `${m}/${d}/${y}`
+}
 
 const PLANT_TYPES = [
   'Beans', 'Beets', 'Berries', 'Bok Choi', 'Brocolli', 'Cabbage',
@@ -36,6 +44,14 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent }) {
   const isEditing = Boolean(initialData)
   const [form, setForm] = useState(isEditing ? { ...EMPTY_FORM, ...initialData } : EMPTY_FORM)
   const [errors, setErrors] = useState({})
+  const [sowingEvents, setSowingEvents] = useState([])
+
+  useEffect(() => {
+    if (!isEditing) return
+    fetch(`/api/sowing-events/seed/${initialData.id}`)
+      .then(r => r.json())
+      .then(events => setSowingEvents(events.filter(e => !INACTIVE.includes(e.sowingStatus))))
+  }, [isEditing, initialData?.id])
 
   function set(field, value) {
     setForm(f => ({ ...f, [field]: value }))
@@ -281,6 +297,25 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent }) {
           <button className="sowing-btn" onClick={() => onNewSowingEvent(initialData)}>
             🌱 New Sowing Event
           </button>
+        </div>
+      )}
+
+      {isEditing && sowingEvents.length > 0 && (
+        <div className="current-sowings">
+          <h2 className="form-section-title">Current Sowings</h2>
+          <div className="seed-list">
+            {sowingEvents.map(evt => (
+              <div key={evt.id} className="seed-card">
+                <div className="seed-card-main">
+                  <span className="seed-variety">
+                    {evt.actualSowDate ? formatDate(evt.actualSowDate) : `Planned ${formatDate(evt.plannedSowDate)}`}
+                  </span>
+                  <span className="seed-plant-type">{evt.sowingMethod}</span>
+                </div>
+                <span className="badge badge-green">{evt.sowingStatus}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>

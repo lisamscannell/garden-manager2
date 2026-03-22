@@ -67,14 +67,14 @@ app.delete('/api/seeds/:id', (req, res) => {
 // ── Sowing Events ─────────────────────────────────────────────────────────────
 
 // Generate event ID: YYMMDD-{seed rowid}-{count within year for this seed}
-function generateEventId(seedId, actualSowDate) {
-  const d = actualSowDate  // YYYY-MM-DD
+function generateEventId(seedId, actualSowDate, plannedSowDate) {
+  const d = actualSowDate || plannedSowDate || new Date().toISOString().split('T')[0]
   const datePart = d.slice(2, 4) + d.slice(5, 7) + d.slice(8, 10)
   const seedRowId = db.prepare('SELECT rowid FROM seeds WHERE id = ?').get(seedId)?.rowid ?? seedId
   const year = d.slice(0, 4)
   const { n } = db.prepare(
-    `SELECT COUNT(*) as n FROM sowing_events
-     WHERE seedId = ? AND actualSowDate BETWEEN ? AND ?`
+    `SELECT COUNT(*) as n FROM sowing_events WHERE seedId = ?
+     AND COALESCE(actualSowDate, plannedSowDate) BETWEEN ? AND ?`
   ).get(seedId, `${year}-01-01`, `${year}-12-31`)
   return `${datePart}-${seedRowId}-${n + 1}`
 }
@@ -101,13 +101,13 @@ app.get('/api/sowing-events/seed/:seedId', (req, res) => {
 // POST a new sowing event
 app.post('/api/sowing-events', (req, res) => {
   const evt = req.body
-  const id = generateEventId(evt.seedId, evt.actualSowDate)
+  const id = generateEventId(evt.seedId, evt.actualSowDate, evt.plannedSowDate)
   db.prepare(`
     INSERT INTO sowing_events
-      (id, seedId, actualSowDate, emergenceDate, transplantDate,
+      (id, seedId, plannedSowDate, actualSowDate, emergenceDate, transplantDate,
        sowingMethod, sowingContainer, sowingStatus, notes)
     VALUES
-      (@id, @seedId, @actualSowDate, @emergenceDate, @transplantDate,
+      (@id, @seedId, @plannedSowDate, @actualSowDate, @emergenceDate, @transplantDate,
        @sowingMethod, @sowingContainer, @sowingStatus, @notes)
   `).run({ ...evt, id })
   res.json(db.prepare('SELECT * FROM sowing_events WHERE id = ?').get(id))
@@ -118,13 +118,59 @@ app.put('/api/sowing-events/:id', (req, res) => {
   const evt = { ...req.body, id: req.params.id }
   db.prepare(`
     UPDATE sowing_events SET
-      actualSowDate = @actualSowDate, emergenceDate = @emergenceDate,
-      transplantDate = @transplantDate, sowingMethod = @sowingMethod,
-      sowingContainer = @sowingContainer, sowingStatus = @sowingStatus,
-      notes = @notes
+      plannedSowDate = @plannedSowDate, actualSowDate = @actualSowDate,
+      emergenceDate = @emergenceDate, transplantDate = @transplantDate,
+      sowingMethod = @sowingMethod, sowingContainer = @sowingContainer,
+      sowingStatus = @sowingStatus, notes = @notes
     WHERE id = @id
   `).run(evt)
   res.json(db.prepare('SELECT * FROM sowing_events WHERE id = ?').get(evt.id))
+})
+
+// ── Tasks ──────────────────────────────────────────────────────────────────────
+
+// GET all pending tasks, joined with seed info for display
+app.get('/api/tasks', (req, res) => {
+  const rows = db.prepare(`
+    SELECT t.*, s.variety, s.plantType
+    FROM tasks t
+    JOIN sowing_events se ON t.sowingEventId = se.id
+    JOIN seeds s ON se.seedId = s.id
+    WHERE t.status = 'Pending'
+    ORDER BY t.dueDate ASC
+  `).all()
+  res.json(rows)
+})
+
+// GET tasks for a specific sowing event
+app.get('/api/tasks/sowing/:sowingEventId', (req, res) => {
+  const rows = db.prepare(
+    'SELECT * FROM tasks WHERE sowingEventId = ? ORDER BY dueDate ASC'
+  ).all(req.params.sowingEventId)
+  res.json(rows)
+})
+
+// POST a new task
+app.post('/api/tasks', (req, res) => {
+  const task = req.body
+  const id = `task-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
+  db.prepare(`
+    INSERT INTO tasks (id, sowingEventId, category, description, notes, dueDate, status)
+    VALUES (@id, @sowingEventId, @category, @description, @notes, @dueDate, @status)
+  `).run({ ...task, id, status: task.status ?? 'Pending' })
+  res.json(db.prepare('SELECT * FROM tasks WHERE id = ?').get(id))
+})
+
+// PUT (update) a task
+app.put('/api/tasks/:id', (req, res) => {
+  const task = { ...req.body, id: req.params.id }
+  db.prepare(`
+    UPDATE tasks SET
+      category = @category, description = @description,
+      notes = @notes, dueDate = @dueDate, status = @status
+    WHERE id = @id
+  `).run(task)
+  res.json(db.prepare('SELECT * FROM tasks WHERE id = ?').get(task.id))
 })
 
 const PORT = 3001

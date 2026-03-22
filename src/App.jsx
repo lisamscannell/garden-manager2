@@ -18,7 +18,7 @@ function App() {
             <NavLink to="/tasks" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>📋 Tasks</NavLink>
             <NavLink to="/seeds" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>📦 Seeds</NavLink>
             <NavLink to="/starts" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>🌱 Starts</NavLink>
-            <NavLink to="/frost" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>🌡 Frost</NavLink>
+            <NavLink to="/frost" className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}>🌿 My Garden</NavLink>
           </div>
         </nav>
 

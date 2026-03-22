@@ -1,9 +1,27 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import TaskForm from './TaskForm'
 
 const today = () => new Date().toISOString().split('T')[0]
 
+function calcPlannedSowDate(springSowLeadWeeks) {
+  const stored = localStorage.getItem('lastFrostDate') // MM-DD
+  if (!stored || !springSowLeadWeeks) return null
+  const year = new Date().getFullYear()
+  let frost = new Date(`${year}-${stored}`)
+  if (frost < new Date()) frost.setFullYear(year + 1)
+  frost.setDate(frost.getDate() - Number(springSowLeadWeeks) * 7)
+  return frost.toISOString().split('T')[0]
+}
+
+function formatDate(iso) {
+  if (!iso) return '—'
+  const [y, m, d] = iso.split('-')
+  return `${m}/${d}/${y}`
+}
+
 const EMPTY_FORM = {
-  actualSowDate: today(),
+  plannedSowDate: '',
+  actualSowDate: '',
   emergenceDate: '',
   transplantDate: '',
   sowingMethod: '',
@@ -16,6 +34,15 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
   const isEditing = Boolean(initialData)
   const [form, setForm] = useState(isEditing ? { ...EMPTY_FORM, ...initialData } : EMPTY_FORM)
   const [errors, setErrors] = useState({})
+  const [tasks, setTasks] = useState([])
+  const [editingTask, setEditingTask] = useState(null) // null | true (new) | task object (edit)
+
+  useEffect(() => {
+    if (!isEditing) return
+    fetch(`/api/tasks/sowing/${initialData.id}`)
+      .then(r => r.json())
+      .then(setTasks)
+  }, [isEditing, initialData?.id])
 
   function set(field, value) {
     setForm(f => ({ ...f, [field]: value }))
@@ -26,6 +53,14 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
     const e = {}
     if (!form.sowingMethod) e.sowingMethod = 'Required'
     return e
+  }
+
+  function handleTaskSave(saved) {
+    setTasks(prev => {
+      const exists = prev.find(t => t.id === saved.id)
+      return exists ? prev.map(t => t.id === saved.id ? saved : t) : [...prev, saved]
+    })
+    setEditingTask(null)
   }
 
   async function handleSave() {
@@ -58,6 +93,19 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
     }
   }
 
+  if (editingTask !== null) {
+    return (
+      <TaskForm
+        sowingEvent={initialData}
+        initialData={editingTask === true ? null : editingTask}
+        onSave={handleTaskSave}
+        onCancel={() => setEditingTask(null)}
+      />
+    )
+  }
+
+  const todayStr = today()
+
   return (
     <div className="seed-form-page">
       <div className="seed-form-header">
@@ -76,6 +124,25 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
       <section className="form-section">
         <h2 className="form-section-title">Sowing Details</h2>
         <div className="form-grid">
+
+          {!form.actualSowDate && (
+            <div className="field-wrap">
+              <div className="field-label-row">
+                <label>Planned Sow Date</label>
+                {seed?.springSowLeadWeeks && localStorage.getItem('lastFrostDate') && (
+                  <button type="button" className="calc-btn"
+                    onClick={() => {
+                      const d = calcPlannedSowDate(seed.springSowLeadWeeks)
+                      if (d) set('plannedSowDate', d)
+                    }}>
+                    Calculate from frost date
+                  </button>
+                )}
+              </div>
+              <input type="date" value={form.plannedSowDate}
+                onChange={e => set('plannedSowDate', e.target.value)} />
+            </div>
+          )}
 
           <div className="field-wrap">
             <label>Actual Sow Date</label>
@@ -149,6 +216,44 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
         </button>
         <button className="ghost-btn" onClick={onCancel}>Cancel</button>
       </div>
+
+      {isEditing && (
+        <div className="sowing-action">
+          <button className="sowing-btn" onClick={() => setEditingTask(true)}>
+            + Add Task
+          </button>
+
+          {tasks.length > 0 && (
+            <div className="current-sowings">
+              <h2 className="form-section-title">Tasks</h2>
+              <div className="seed-list">
+                {tasks.map(task => {
+                  const isOverdue = task.status === 'Pending' && task.dueDate < todayStr
+                  return (
+                    <div key={task.id} className="seed-card"
+                      onClick={() => setEditingTask(task)} style={{ cursor: 'pointer' }}>
+                      <div className="seed-card-main">
+                        <span className="seed-variety">
+                          {task.category === 'Other' ? task.description : task.category}
+                        </span>
+                        <span className="seed-plant-type">{initialData.variety} · Due {formatDate(task.dueDate)}</span>
+                      </div>
+                      <div className="starts-meta">
+                        {isOverdue && <span className="badge badge-orange">Overdue</span>}
+                        <span className={`badge ${
+                          task.status === 'Completed' ? 'badge-green'
+                          : task.status === 'Cancelled' ? 'badge-gray'
+                          : 'badge-sky'
+                        }`}>{task.status}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
