@@ -457,6 +457,46 @@
   margin-bottom: 2rem;
 }
 
+/* ── Daily Tasks ── */
+.task-section {
+  background: white;
+  border: 1px solid rgba(74,103,65,0.15);
+  border-radius: 16px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 2px 10px rgba(59,42,26,0.04);
+}
+
+.task-section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.task-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--soil);
+  margin-bottom: 0.2rem;
+}
+
+.task-section-hint {
+  font-size: 0.82rem;
+  color: #9a8878;
+}
+
+.task-empty {
+  font-size: 0.9rem;
+  color: #9a8878;
+}
+
+.needs-starting-card {
+  border-left: 3px solid var(--accent);
+}
+
 /* ── Sowing Event button (on SeedForm) ── */
 .sowing-action {
   margin-top: 1rem;
