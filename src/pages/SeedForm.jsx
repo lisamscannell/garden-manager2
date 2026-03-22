@@ -40,7 +40,7 @@ const EMPTY_FORM = {
   notes: '',
 }
 
-function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent }) {
+function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent, onOpenSowingEvent }) {
   const isEditing = Boolean(initialData)
   const [form, setForm] = useState(isEditing ? { ...EMPTY_FORM, ...initialData } : EMPTY_FORM)
   const [errors, setErrors] = useState({})
@@ -305,7 +305,9 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent }) {
           <h2 className="form-section-title">Current Sowings</h2>
           <div className="seed-list">
             {sowingEvents.map(evt => (
-              <div key={evt.id} className="seed-card">
+              <div key={evt.id} className="seed-card"
+                onClick={() => onOpenSowingEvent?.(evt)}
+                style={{ cursor: onOpenSowingEvent ? 'pointer' : 'default' }}>
                 <div className="seed-card-main">
                   <span className="seed-variety">
                     {evt.actualSowDate ? formatDate(evt.actualSowDate) : `Planned ${formatDate(evt.plannedSowDate)}`}

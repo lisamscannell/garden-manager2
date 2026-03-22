@@ -128,6 +128,8 @@ function SeedInventory() {
   const [showForm, setShowForm] = useState(false)
   const [editingSeed, setEditingSeed] = useState(null)
   const [sowingForSeed, setSowingForSeed] = useState(null)
+  const [editingEvent, setEditingEvent] = useState(null)
+  const [seedFormKey, setSeedFormKey] = useState(0)
   const [importError, setImportError] = useState(null)
   const [showAll, setShowAll] = useState(false)
   const [category, setCategory] = useState('Edible')
@@ -191,6 +193,14 @@ function SeedInventory() {
     e.target.value = ''
   }
 
+  if (editingEvent) {
+    return <SowingForm
+      initialData={editingEvent}
+      onSave={() => { setEditingEvent(null); setSeedFormKey(k => k + 1) }}
+      onCancel={() => setEditingEvent(null)}
+    />
+  }
+
   if (sowingForSeed) {
     return <SowingForm
       seed={sowingForSeed}
@@ -201,10 +211,12 @@ function SeedInventory() {
 
   if (editingSeed) {
     return <SeedForm
+      key={seedFormKey}
       onSave={handleSave}
       onCancel={() => setEditingSeed(null)}
       initialData={editingSeed}
       onNewSowingEvent={seed => { setEditingSeed(null); setSowingForSeed(seed) }}
+      onOpenSowingEvent={event => setEditingEvent(event)}
     />
   }
 
