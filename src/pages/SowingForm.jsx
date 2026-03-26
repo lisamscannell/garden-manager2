@@ -45,7 +45,14 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
   }, [isEditing, initialData?.id])
 
   function set(field, value) {
-    setForm(f => ({ ...f, [field]: value }))
+    setForm(f => {
+      const updated = { ...f, [field]: value }
+      if (field === 'plannedSowDate' && value && !f.actualSowDate) {
+        const today = new Date().toISOString().split('T')[0]
+        updated.sowingStatus = value > today ? 'Anticipated' : 'Active'
+      }
+      return updated
+    })
     if (errors[field]) setErrors(e => ({ ...e, [field]: null }))
   }
 

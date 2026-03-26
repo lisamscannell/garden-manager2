@@ -141,22 +141,33 @@ function SeedInventory() {
   }, [])
 
   async function handleSave(seed) {
-    if (editingSeed) {
-      const updated = await fetch(`/api/seeds/${seed.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(seed),
-      }).then(r => r.json())
-      setSeeds(prev => prev.map(s => s.id === updated.id ? updated : s))
-      setEditingSeed(null)
-    } else {
-      const created = await fetch('/api/seeds', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(seed),
-      }).then(r => r.json())
-      setSeeds(prev => [...prev, created])
-      setShowForm(false)
+    try {
+      if (editingSeed) {
+        const res = await fetch(`/api/seeds/${seed.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(seed),
+        })
+        if (!res.ok) { alert(`Save failed: ${await res.text()}`); return }
+        const updated = await res.json()
+        setSeeds(prev => prev.map(s => s.id === updated.id ? updated : s))
+        // If category changed, switch the filter so the seed stays visible
+        if (updated.category) setCategory(updated.category)
+        setEditingSeed(null)
+      } else {
+        const res = await fetch('/api/seeds', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(seed),
+        })
+        if (!res.ok) { alert(`Save failed: ${await res.text()}`); return }
+        const created = await res.json()
+        setSeeds(prev => [...prev, created])
+        if (created.category) setCategory(created.category)
+        setShowForm(false)
+      }
+    } catch (err) {
+      alert(`Could not save: ${err.message}`)
     }
   }
 
