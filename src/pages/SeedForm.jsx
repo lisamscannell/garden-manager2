@@ -170,7 +170,14 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent, onOpenSowin
           </div>
 
           <div className="field-wrap full-width">
-            <label>Link</label>
+            <div className="field-label-row">
+              <label>Link</label>
+              {form.link && (
+                <a href={form.link} target="_blank" rel="noopener noreferrer" className="calc-btn">
+                  Open ↗
+                </a>
+              )}
+            </div>
             <input type="url" value={form.link}
               onChange={e => set('link', e.target.value)}
               placeholder="https://…" />

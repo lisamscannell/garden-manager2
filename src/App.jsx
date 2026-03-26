@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import Home from './pages/Home'
 import FrostDates from './pages/FrostDates'
@@ -7,6 +8,17 @@ import DailyTasks from './pages/DailyTasks'
 import './App.css'
 
 function App() {
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(settings => {
+        if (settings.lastFrostDate) localStorage.setItem('lastFrostDate', settings.lastFrostDate)
+        if (settings.firstFrostDate) localStorage.setItem('firstFrostDate', settings.firstFrostDate)
+        if (settings.zipCode) localStorage.setItem('zipCode', settings.zipCode)
+      })
+      .catch(() => { /* settings not critical on startup */ })
+  }, [])
+
   return (
     <BrowserRouter>
       <div className="app-shell">

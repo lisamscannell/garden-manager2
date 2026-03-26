@@ -133,6 +133,7 @@ function SeedInventory() {
   const [importError, setImportError] = useState(null)
   const [showAll, setShowAll] = useState(false)
   const [category, setCategory] = useState('Edible')
+  const [season, setSeason] = useState('All')
   const fileInputRef = useRef(null)
 
   useEffect(() => {
@@ -242,6 +243,16 @@ function SeedInventory() {
         ))}
       </div>
 
+      <div className="category-toggle">
+        {['All', 'Spring', 'Summer', 'Fall'].map(s => (
+          <button
+            key={s}
+            className={`category-btn${season === s ? ' category-btn-active' : ''}`}
+            onClick={() => setSeason(s)}
+          >{s}</button>
+        ))}
+      </div>
+
       {importError && <p className="import-error">{importError}</p>}
 
       {seeds.length === 0 ? (
@@ -253,6 +264,7 @@ function SeedInventory() {
         <div className="seed-list">
           {seeds
             .filter(s => s.category === category)
+            .filter(s => season === 'All' || (s.seasons ?? []).includes(season))
             .filter(s => showAll || s.status !== 'Gone')
             .sort((a, b) => a.plantType.localeCompare(b.plantType) || a.variety.localeCompare(b.variety))
             .map(seed => (
@@ -267,10 +279,10 @@ function SeedInventory() {
         </div>
       )}
 
-      {!showAll && seeds.some(s => s.category === category && s.status === 'Gone') && (
+      {!showAll && seeds.some(s => s.category === category && s.status === 'Gone' && (season === 'All' || (s.seasons ?? []).includes(season))) && (
         <p className="show-all-toggle">
           <button className="ghost-btn" onClick={() => setShowAll(true)}>
-            Show Gone packets ({seeds.filter(s => s.category === category && s.status === 'Gone').length})
+            Show Gone packets ({seeds.filter(s => s.category === category && s.status === 'Gone' && (season === 'All' || (s.seasons ?? []).includes(season))).length})
           </button>
         </p>
       )}

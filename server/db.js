@@ -58,6 +58,13 @@ db.exec(`
   )
 `)
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  )
+`)
+
 // Add plannedSowDate to existing databases that predate this column
 try {
   db.exec('ALTER TABLE sowing_events ADD COLUMN plannedSowDate TEXT')

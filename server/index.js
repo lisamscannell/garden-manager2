@@ -131,6 +131,25 @@ app.put('/api/sowing-events/:id', (req, res) => {
   res.json(db.prepare('SELECT * FROM sowing_events WHERE id = ?').get(evt.id))
 })
 
+// ── Settings ───────────────────────────────────────────────────────────────────
+
+// GET all settings as a flat object { key: value, ... }
+app.get('/api/settings', (req, res) => {
+  const rows = db.prepare('SELECT key, value FROM settings').all()
+  const obj = Object.fromEntries(rows.map(r => [r.key, r.value]))
+  res.json(obj)
+})
+
+// PUT one or more settings — body is { key: value, ... }
+app.put('/api/settings', (req, res) => {
+  const upsert = db.prepare('INSERT INTO settings (key, value) VALUES (@key, @value) ON CONFLICT(key) DO UPDATE SET value = @value')
+  const saveAll = db.transaction(entries => {
+    for (const [key, value] of entries) upsert.run({ key, value })
+  })
+  saveAll(Object.entries(req.body))
+  res.json({ ok: true })
+})
+
 // ── Tasks ──────────────────────────────────────────────────────────────────────
 
 // GET all pending tasks, joined with seed info for display

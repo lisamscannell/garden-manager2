@@ -77,6 +77,11 @@ function FrostDates() {
     localStorage.setItem('lastFrostDate', lastFrost)
     localStorage.setItem('firstFrostDate', firstFrost)
     localStorage.setItem('zipCode', zipCode)
+    fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lastFrostDate: lastFrost, firstFrostDate: firstFrost, zipCode }),
+    })
     setSaved(true)
     setTimeout(() => setSaved(false), 3000)
     fetchWeather(zipCode)
