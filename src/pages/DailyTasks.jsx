@@ -31,11 +31,12 @@ function plannedThisWeek(events) {
   today.setHours(0, 0, 0, 0)
   const cutoff = new Date(today)
   cutoff.setDate(cutoff.getDate() + 3)
+  const cutoffStr = cutoff.toISOString().split('T')[0]
 
   return events.filter(e => {
     if (!e.plannedSowDate || e.actualSowDate) return false
-    const planned = new Date(e.plannedSowDate)
-    return planned >= today && planned <= cutoff
+    if (['Failed', 'Cancelled', 'Completed'].includes(e.sowingStatus)) return false
+    return e.plannedSowDate <= cutoffStr
   }).sort((a, b) => a.plannedSowDate.localeCompare(b.plannedSowDate))
 }
 
@@ -179,23 +180,31 @@ function DailyTasks() {
       today.setHours(0, 0, 0, 0)
       const thisYearStr = today.getFullYear().toString()
 
-      // Most recent actual sow date per seed this year
+      // Build tracking sets from this year's sowing events:
+      //   seededThisYear     — any active event (planned OR actual) → excludes from first-start checks
+      //   fallSeededThisYear — active events after July 1 → excludes from fall first-start checks
+      //   latestSowBySeed    — most recent ACTUAL sow date → used for succession interval only
+      const seededThisYear = new Set()
+      const fallSeededThisYear = new Set()
       const latestSowBySeed = {}
+
       events.forEach(e => {
+        const dateStr = e.actualSowDate || e.plannedSowDate
+        const isActive = !['Failed', 'Cancelled', 'Completed'].includes(e.sowingStatus)
+
+        if (dateStr?.startsWith(thisYearStr) && isActive) {
+          seededThisYear.add(e.seedId)
+          if (dateStr >= `${thisYearStr}-07-01`) fallSeededThisYear.add(e.seedId)
+        }
+
         if (e.actualSowDate?.startsWith(thisYearStr)) {
           if (!latestSowBySeed[e.seedId] || e.actualSowDate > latestSowBySeed[e.seedId]) {
             latestSowBySeed[e.seedId] = e.actualSowDate
           }
         }
       })
-      const startedThisYear = new Set(Object.keys(latestSowBySeed))
 
-      // Seeds started after July 1 count as a "fall start"
-      const fallStartedThisYear = new Set(
-        events
-          .filter(e => e.actualSowDate >= `${thisYearStr}-07-01`)
-          .map(e => e.seedId)
-      )
+      const startedThisYear = new Set(Object.keys(latestSowBySeed))
 
       // Weeks until first frost — current year only, no rollover
       const firstFrostStored = localStorage.getItem('firstFrostDate')
@@ -214,7 +223,7 @@ function DailyTasks() {
           if (!seasons.includes('Spring') && !seasons.includes('Summer')) return false
           if (!s.springSowLeadWeeks) return false
           if (Number(s.springSowLeadWeeks) <= weeksToLastFrost) return false
-          if (startedThisYear.has(s.id)) return false
+          if (seededThisYear.has(s.id)) return false
           if (s.status === 'Gone') return false
           return true
         })
@@ -234,7 +243,7 @@ function DailyTasks() {
             if (!seasons.includes('Fall')) return false
             if (!s.fallSowLeadWeeks) return false
             if (Number(s.fallSowLeadWeeks) <= weeksToFirstFrost) return false
-            if (fallStartedThisYear.has(s.id)) return false
+            if (fallSeededThisYear.has(s.id)) return false
             if (s.status === 'Gone') return false
             return true
           })
@@ -304,18 +313,26 @@ function DailyTasks() {
           <p className="task-empty">No starts planned in the next 3 days.</p>
         ) : (
           <div className="seed-list">
-            {upcomingEvents.map(evt => (
-              <div key={evt.id} className="seed-card"
-                onClick={() => setEditingEvent(evt)} style={{ cursor: 'pointer' }}>
-                <div className="seed-card-main">
-                  <span className="seed-variety">{evt.variety}</span>
-                  <span className="seed-plant-type">{evt.plantType}</span>
+            {upcomingEvents.map(evt => {
+              const isOverdue = evt.plannedSowDate < todayStr
+              const isDueToday = evt.plannedSowDate === todayStr
+              return (
+                <div key={evt.id} className="seed-card"
+                  onClick={() => setEditingEvent(evt)} style={{ cursor: 'pointer' }}>
+                  <div className="seed-card-main">
+                    <span className="seed-variety">{evt.variety}</span>
+                    <span className="seed-plant-type">{evt.plantType}</span>
+                  </div>
+                  <div className="starts-meta">
+                    {isOverdue && <span className="badge badge-orange">Overdue</span>}
+                    {isDueToday && <span className="badge badge-green">Today</span>}
+                    {!isOverdue && !isDueToday && (
+                      <span className="starts-date">{formatDate(evt.plannedSowDate)}</span>
+                    )}
+                  </div>
                 </div>
-                <div className="starts-meta">
-                  <span className="starts-date">{formatDate(evt.plannedSowDate)}</span>
-                </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>
