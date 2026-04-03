@@ -1,4 +1,60 @@
-# CLAUDE.md
+# Garden Manager
+
+> A vegetable garden management app that tells the gardener what to do each day based on planted seeds, sowing events, and frost dates.
+
+## Context System
+
+This project uses a context framework in `.context/` to prevent context degradation across sessions. You MUST follow these instructions every session.
+
+### Every Session — Start
+
+Before writing any code, read these files in order:
+
+1. **`.context/CURRENT_STATUS.md`** — what was accomplished last session, what's in progress, what's next
+2. **`.context/CONVENTIONS.md`** — coding standards to follow
+3. **`.context/ARCHITECTURE.md`** — system design and how components connect
+
+Read as needed based on the task:
+
+- `.context/MASTER_PLAN.md` — full roadmap, to understand where current work fits
+- `.context/DECISIONS.md` — past architectural decisions, to avoid re-debating settled questions
+
+### Every Session — During Work
+
+- **Follow CONVENTIONS.md** for all code you write
+- **Check DECISIONS.md** before proposing architectural changes — the decision may already be made
+- **Record new decisions** in `DECISIONS.md` when significant technical choices are made
+
+### Every Session — End
+
+Before the session ends:
+
+1. **Update `.context/CURRENT_STATUS.md`** with what was completed, what's in progress, and what's next
+2. **Update the Current Focus section below** if priorities changed
+3. **Create a checkpoint** in `.context/CHECKPOINTS/` if the session was long or made significant progress
+4. **Suggest a commit message** that includes both code and context changes — never commit or push automatically
+
+## Current Focus
+
+**Phase**: Phase 5 — Polish & Maintenance
+**Working on**: All core features implemented; next is Home page dashboard
+**Key constraint**: Plain CSS only; one feature at a time; explain WHY when introducing new concepts
+
+## Reference
+
+| File | Purpose |
+|------|---------|
+| `.context/CURRENT_STATUS.md` | Where the project stands right now |
+| `.context/MASTER_PLAN.md` | Implementation roadmap |
+| `.context/ARCHITECTURE.md` | System design and components |
+| `.context/DECISIONS.md` | Architecture Decision Records |
+| `.context/CONVENTIONS.md` | Coding standards and patterns |
+| `.context/SETUP.md` | Dev environment setup |
+| `.context/CHECKPOINTS/` | Session summaries |
+
+---
+
+# Project Reference
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
