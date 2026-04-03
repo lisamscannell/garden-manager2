@@ -1,265 +1,170 @@
-# Deploying Garden Manager to Digital Ocean
+# Deploying Garden Manager
 
 ## How it works in production
 
-In development, Vite and the Express API run as two separate processes. In production, a single Express server does everything: it handles all `/api/*` routes and serves the pre-built React frontend as static files. A process manager (PM2) keeps it running, and Nginx sits in front to handle port 80/443 and your domain name.
+The React frontend is built locally on your PC and uploaded to the server. Nginx serves the static frontend directly and proxies `/api` requests to Express running on port 3001. PM2 keeps Express running.
 
 ```
-Browser → Nginx (port 80/443) → Express (port 3001)
-                                      ├── /api/* routes (SQLite)
-                                      └── everything else → dist/index.html
+Browser → Nginx (port 80/443)
+              ├── /api/*  → proxy to Express (port 3001, managed by PM2)
+              │                  └── SQLite database
+              └── /*      → /var/www/garden-manager/html (static files)
 ```
+
+### Deployment files
+
+| File | Runs on | Purpose |
+|------|---------|---------|
+| `ship.bat` | Your PC | Builds frontend, zips, uploads via SFTP, opens PuTTY |
+| `sftp-garden.scr` | Your PC | SFTP commands used by `ship.bat` |
+| `deploy.sh` | Server (once) | First-time setup: nginx config, PM2, build tools |
+| `server-install.sh` | Server (each deploy) | Unzips, updates files, restarts services |
 
 ---
 
-## Prerequisites
+## First-time server setup
 
-- A GitHub account with this repository pushed to it
-- A domain name pointed at your Droplet's IP (optional but recommended for SSL)
+These steps only need to be done once.
 
----
+### 1. Prerequisites on the server
 
-## Step 1 — Push to GitHub
+SSH into the server and ensure these are installed:
 
-If you haven't already, create a GitHub repository and push the project.
+- **Node.js 20+** — `node --version`
+- **build-essential** — needed to compile `better-sqlite3`
+- **PM2** — process manager
 
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/garden-manager.git
-git push -u origin main
-```
-
-> The `server/garden.db` database file is excluded from git (it's in `.gitignore`). Your data lives only on the server — it will not be wiped when you redeploy code.
-
----
-
-## Step 2 — Create a Droplet
-
-1. Log in to [digitalocean.com](https://digitalocean.com)
-2. Click **Create → Droplets**
-3. Choose:
-   - **Image:** Ubuntu 24.04 LTS
-   - **Size:** Basic → Regular → **$12/month** (2GB RAM, 1 CPU)
-     - 2GB is recommended because `npm install` compiles native binaries (`better-sqlite3`) and needs the headroom
-   - **Region:** Closest to you
-   - **Authentication:** SSH Key (paste your public key) — safer than a password
-4. Click **Create Droplet**
-5. Copy the Droplet's **IP address** from the dashboard
-
----
-
-## Step 3 — Connect to the Droplet
-
-```bash
-ssh root@YOUR_DROPLET_IP
-```
-
----
-
-## Step 4 — Create a non-root user
-
-Running as root is risky. Create a regular user for day-to-day use.
-
-```bash
-adduser garden
-usermod -aG sudo garden
-
-# Copy your SSH key to the new user so you can log in as them
-rsync --archive --chown=garden:garden ~/.ssh /home/garden
-```
-
-Log out and back in as the new user for all remaining steps:
-
-```bash
-ssh garden@YOUR_DROPLET_IP
-```
-
----
-
-## Step 5 — Configure the firewall
-
-```bash
-sudo ufw allow OpenSSH
-sudo ufw allow 80
-sudo ufw allow 443
-sudo ufw enable
-```
-
----
-
-## Step 6 — Install Node.js 20
+If not, install them:
 
 ```bash
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# Verify
-node --version   # should print v20.x.x
-npm --version
-```
-
----
-
-## Step 7 — Install build tools (required for better-sqlite3)
-
-`better-sqlite3` compiles native code during `npm install`. This requires build tools.
-
-```bash
-sudo apt-get install -y build-essential python3
-```
-
----
-
-## Step 8 — Install PM2
-
-PM2 is a process manager that keeps the app running and restarts it if it crashes or the server reboots.
-
-```bash
+sudo apt-get install -y nodejs build-essential python3
 sudo npm install -g pm2
 ```
 
----
+### 2. Copy scripts to the server
 
-## Step 9 — Deploy the app
+From your PC, upload the setup and deploy scripts:
 
-```bash
-# Clone your repository
-git clone https://github.com/YOUR_USERNAME/garden-manager.git
-cd garden-manager
-
-# Install all dependencies (this will compile better-sqlite3 — takes ~1 minute)
-npm install
-
-# Build the React frontend
-npm run build
-
-# Start the production server with PM2
-pm2 start npm --name "garden-manager" -- start
-
-# Save the process list so it restarts after a server reboot
-pm2 save
-
-# Configure PM2 to start on boot
-pm2 startup
-# ↑ This prints a command to run — copy and run that command
+```bat
+pscp -i "C:\Users\mike\Documents\SSH Keys\DigitalOcean-Dcc-Private.ppk" "C:\Users\mike\Documents\Code Projects\garden-manager2\deploy.sh" mike@rentontrack.org:/home/mike/garden-manager/deploy.sh
+pscp -i "C:\Users\mike\Documents\SSH Keys\DigitalOcean-Dcc-Private.ppk" "C:\Users\mike\Documents\Code Projects\garden-manager2\server-install.sh" mike@rentontrack.org:/home/mike/garden-manager/server-install.sh
 ```
 
-At this point the app is running on port 3001. Test it:
+Then on the server, make them executable:
 
 ```bash
-curl http://localhost:3001/api/seeds
-# Should return [] or a JSON array
+chmod +x ~/garden-manager/deploy.sh ~/garden-manager/server-install.sh
 ```
 
----
-
-## Step 10 — Install and configure Nginx
-
-Nginx listens on port 80 and forwards requests to Express on port 3001.
+### 3. Run first-time setup
 
 ```bash
-sudo apt-get install -y nginx
+~/garden-manager/deploy.sh
 ```
 
-Create a site config:
+This creates the nginx site config and enables it. After it runs, edit the `server_name` in the config:
 
 ```bash
 sudo nano /etc/nginx/sites-available/garden-manager
 ```
 
-Paste this (replace `YOUR_DOMAIN_OR_IP` with your domain name or Droplet IP):
-
-```nginx
-server {
-    listen 80;
-    server_name YOUR_DOMAIN_OR_IP;
-
-    location / {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-Enable the site and restart Nginx:
+Replace `YOUR_DOMAIN_OR_IP` with your domain or server IP, then reload:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/garden-manager /etc/nginx/sites-enabled/
-sudo nginx -t          # test the config — should say "ok"
-sudo systemctl restart nginx
+sudo nginx -t && sudo systemctl reload nginx
 ```
 
-Your app is now accessible at `http://YOUR_DOMAIN_OR_IP`.
+### 4. Upload the database
+
+If you have seed data locally that you want on the server, stop PM2 first (if running), upload, then start:
+
+```bash
+# On the server
+pm2 stop garden-manager    # skip if first deploy
+```
+
+```bat
+REM On your PC
+pscp -i "C:\Users\mike\Documents\SSH Keys\DigitalOcean-Dcc-Private.ppk" "C:\Users\mike\Documents\Code Projects\garden-manager2\server\garden.db" mike@rentontrack.org:/home/mike/garden-manager/server/garden.db
+```
+
+```bash
+# On the server
+pm2 start garden-manager   # skip if first deploy — server-install.sh will start it
+```
+
+### 5. First deploy
+
+Run `ship.bat` on your PC, then in the PuTTY window:
+
+```bash
+~/garden-manager/server-install.sh
+```
 
 ---
 
-## Step 11 — Add SSL (HTTPS) with Let's Encrypt
+## Deploying updates
 
-Requires a domain name pointed at your Droplet's IP. If you're using just an IP address, skip this step.
+After making code changes locally:
+
+1. Double-click **`ship.bat`** on your PC
+   - Builds the React frontend (`npm run build`)
+   - Zips `dist/`, `server/db.js`, `server/index.js`, `package.json`, `package-lock.json`
+   - Uploads `garden-manager.zip` to the server via SFTP
+   - Opens a PuTTY SSH session
+
+2. In the PuTTY window, run:
+
+```bash
+~/garden-manager/server-install.sh
+```
+
+That script:
+- Backs up `garden.db` to `garden.db.bak`
+- Copies the new frontend to `/var/www/garden-manager/html`
+- Updates server code in `~/garden-manager/server/`
+- Runs `npm install --omit=dev` (compiles native deps for Linux)
+- Restarts Express via PM2
+- Reloads nginx
+
+> **Your data is safe.** The zip never contains `garden.db` — it stays untouched on the server.
+
+---
+
+## SSL (HTTPS) with Let's Encrypt
+
+Optional — requires a domain name pointed at your server's IP.
 
 ```bash
 sudo apt-get install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d yourdomain.com
 ```
 
-Certbot will automatically update your Nginx config for HTTPS and set up auto-renewal. Your app will be available at `https://yourdomain.com`.
-
----
-
-## Redeploying after code changes
-
-When you make changes to the app locally:
-
-```bash
-# On your local machine — commit and push
-git add .
-git commit -m "Description of changes"
-git push
-```
-
-Then on the server:
-
-```bash
-ssh garden@YOUR_DROPLET_IP
-cd garden-manager
-
-git pull                  # get the latest code
-npm install               # in case dependencies changed
-npm run build             # rebuild the React frontend
-pm2 restart garden-manager
-```
-
-> **Your data is safe.** The `server/garden.db` file is not in git and is never touched by `git pull`.
-
 ---
 
 ## Backing up the database
 
-The entire app's data lives in `server/garden.db` on the Droplet. Copy it to your local machine:
+All app data lives in `~/garden-manager/server/garden.db` on the server. Copy it to your PC:
 
-```bash
-# Run this on your local machine
-scp garden@YOUR_DROPLET_IP:~/garden-manager/server/garden.db ./garden-backup-$(date +%Y%m%d).db
+```bat
+pscp -i "C:\Users\mike\Documents\SSH Keys\DigitalOcean-Dcc-Private.ppk" mike@rentontrack.org:/home/mike/garden-manager/server/garden.db "C:\Users\mike\Documents\Code Projects\garden-manager2\garden-backup.db"
 ```
 
-Consider running this periodically or setting up a cron job on the Droplet to copy it to Digital Ocean Spaces (their S3-compatible object storage).
+> Stop PM2 first (`pm2 stop garden-manager`) to avoid copying a database mid-write.
 
 ---
 
 ## Useful PM2 commands
 
+Run these on the server:
+
 ```bash
-pm2 status                        # see if the app is running
-pm2 logs garden-manager           # view live logs
+pm2 status                          # see if the app is running
+pm2 logs garden-manager             # view live logs
 pm2 logs garden-manager --lines 50  # view last 50 log lines
-pm2 restart garden-manager        # restart the app
-pm2 stop garden-manager           # stop the app
+pm2 restart garden-manager          # restart the app
+pm2 stop garden-manager             # stop the app
 ```
 
 ---
@@ -269,8 +174,9 @@ pm2 stop garden-manager           # stop the app
 | Problem | Check |
 |---|---|
 | App not loading | `pm2 status` — is it online? `pm2 logs garden-manager` for errors |
-| 502 Bad Gateway | Express isn't running — check `pm2 status` |
+| 502 Bad Gateway on /api calls | Express isn't running — check `pm2 status` and `pm2 logs` |
+| Static pages load but API fails | Nginx config missing `/api/` proxy — check `/etc/nginx/sites-available/garden-manager` |
 | API calls failing | `curl http://localhost:3001/api/seeds` directly on the server |
-| Port 80 blocked | `sudo ufw status` — is port 80 allowed? |
-| `npm install` fails | Check build tools are installed: `sudo apt-get install -y build-essential` |
-| Changes not showing | Did you run `npm run build` and `pm2 restart garden-manager`? |
+| `npm install` fails on server | Check build tools: `sudo apt-get install -y build-essential` |
+| Changes not showing | Did you run `ship.bat` and then `server-install.sh`? |
+| Database missing after deploy | `garden.db` is never in the zip. Upload it manually (see Backing up section) |
