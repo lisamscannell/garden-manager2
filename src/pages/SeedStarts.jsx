@@ -18,6 +18,33 @@ function formatDate(iso) {
   return `${m}/${d}/${y}`
 }
 
+function calcAvgDaysBySeed(events) {
+  const bySeed = {}
+  for (const e of events) {
+    if (!e.actualSowDate || !e.emergenceDate) continue
+    if (!bySeed[e.seedId]) bySeed[e.seedId] = { total: 0, count: 0 }
+    const days = Math.round(
+      (new Date(e.emergenceDate) - new Date(e.actualSowDate)) / (1000 * 60 * 60 * 24)
+    )
+    bySeed[e.seedId].total += days
+    bySeed[e.seedId].count += 1
+  }
+  const result = {}
+  for (const [seedId, { total, count }] of Object.entries(bySeed)) {
+    result[seedId] = Math.round(total / count)
+  }
+  return result
+}
+
+function getExpectedEmergenceDate(evt, avgDaysBySeed) {
+  if (!evt.actualSowDate) return null
+  const avg = avgDaysBySeed[evt.seedId]
+  if (!avg) return null
+  const d = new Date(evt.actualSowDate)
+  d.setDate(d.getDate() + avg)
+  return d.toISOString().split('T')[0]
+}
+
 function groupEvents(events) {
   const watchForEmergence = []
   const activeIndoors = []
@@ -44,7 +71,7 @@ function groupEvents(events) {
   return { watchForEmergence, activeIndoors, activeOutdoors, inGround, anticipated, errors }
 }
 
-function EventCard({ evt, onClick }) {
+function EventCard({ evt, onClick, expectedEmergenceDate }) {
   return (
     <div className="seed-card starts-card" onClick={() => onClick(evt)} style={{ cursor: 'pointer' }}>
       <div className="seed-card-main">
@@ -53,6 +80,9 @@ function EventCard({ evt, onClick }) {
       </div>
       <div className="starts-meta">
         <span className="starts-date">{formatDate(evt.actualSowDate)}</span>
+        {expectedEmergenceDate && (
+          <span className="starts-date emergence-expected">→ {formatDate(expectedEmergenceDate)}</span>
+        )}
         <span className={`badge ${STATUS_CLASS[evt.sowingStatus] || 'badge-gray'}`}>
           {evt.sowingStatus}
         </span>
@@ -61,14 +91,19 @@ function EventCard({ evt, onClick }) {
   )
 }
 
-function EventGroup({ label, events, onClickEvent }) {
+function EventGroup({ label, events, onClickEvent, avgDaysBySeed }) {
   if (events.length === 0) return null
   return (
     <div className="starts-group">
       <h2 className="starts-group-label">{label}</h2>
       <div className="seed-list">
         {events.map(evt => (
-          <EventCard key={evt.id} evt={evt} onClick={onClickEvent} />
+          <EventCard
+            key={evt.id}
+            evt={evt}
+            onClick={onClickEvent}
+            expectedEmergenceDate={avgDaysBySeed ? getExpectedEmergenceDate(evt, avgDaysBySeed) : null}
+          />
         ))}
       </div>
     </div>
@@ -100,6 +135,8 @@ function SeedStarts() {
   const visibleEvents = events.filter(e => showAll || !INACTIVE.includes(e.sowingStatus))
   const { watchForEmergence, activeIndoors, activeOutdoors, inGround, anticipated, errors } = groupEvents(visibleEvents)
   const inactiveCount = events.filter(e => INACTIVE.includes(e.sowingStatus)).length
+  // Use ALL events (including inactive) for the emergence average — more history = better estimate
+  const avgDaysBySeed = calcAvgDaysBySeed(events)
 
   return (
     <div>
@@ -114,7 +151,7 @@ function SeedStarts() {
         </div>
       ) : (
         <>
-          <EventGroup label="Watch for Emergence" events={watchForEmergence} onClickEvent={setEditingEvent} />
+          <EventGroup label="Watch for Emergence" events={watchForEmergence} onClickEvent={setEditingEvent} avgDaysBySeed={avgDaysBySeed} />
           <EventGroup label="Active Starts (Indoors)" events={activeIndoors} onClickEvent={setEditingEvent} />
           <EventGroup label="Active Starts (Outdoors)" events={activeOutdoors} onClickEvent={setEditingEvent} />
           <EventGroup label="Starts in Ground" events={inGround} onClickEvent={setEditingEvent} />

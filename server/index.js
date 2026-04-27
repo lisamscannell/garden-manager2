@@ -36,12 +36,12 @@ app.post("/api/seeds", (req, res) => {
       id, plantType, category, seasons, variety, status, dateAdded, vendor,
       itemNumber, link, maturityDays, harvestType, springSowLeadWeeks,
       springTransplantLeadWeeks, fallSowLeadWeeks, preferredSowingType,
-      successionWeeks, anticipatedHeight, recommendedSpacing, hrsSun, notes
+      successionWeeks, anticipatedHeight, recommendedSpacing, hrsSun, notes, skipYear
     ) VALUES (
       @id, @plantType, @category, @seasons, @variety, @status, @dateAdded, @vendor,
       @itemNumber, @link, @maturityDays, @harvestType, @springSowLeadWeeks,
       @springTransplantLeadWeeks, @fallSowLeadWeeks, @preferredSowingType,
-      @successionWeeks, @anticipatedHeight, @recommendedSpacing, @hrsSun, @notes
+      @successionWeeks, @anticipatedHeight, @recommendedSpacing, @hrsSun, @notes, @skipYear
     )
   `,
   ).run(toRow(seed));
@@ -63,7 +63,8 @@ app.put("/api/seeds/:id", (req, res) => {
       springTransplantLeadWeeks = @springTransplantLeadWeeks,
       fallSowLeadWeeks = @fallSowLeadWeeks, preferredSowingType = @preferredSowingType,
       successionWeeks = @successionWeeks, anticipatedHeight = @anticipatedHeight,
-      recommendedSpacing = @recommendedSpacing, hrsSun = @hrsSun, notes = @notes
+      recommendedSpacing = @recommendedSpacing, hrsSun = @hrsSun, notes = @notes,
+      skipYear = @skipYear
     WHERE id = @id
   `,
   ).run(toRow(seed));

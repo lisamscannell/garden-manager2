@@ -21,6 +21,7 @@ const EMPTY_FORM = {
   plantType: '',
   category: '',
   seasons: [],
+  skipYear: null,
   variety: '',
   status: 'In Stock',
   dateAdded: today(),
@@ -45,12 +46,28 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent, onOpenSowin
   const [form, setForm] = useState(isEditing ? { ...EMPTY_FORM, ...initialData } : EMPTY_FORM)
   const [errors, setErrors] = useState({})
   const [sowingEvents, setSowingEvents] = useState([])
+  const [avgDaysToEmergence, setAvgDaysToEmergence] = useState(null)
+  const [emergenceCount, setEmergenceCount] = useState(0)
 
   useEffect(() => {
     if (!isEditing) return
     fetch(`/api/sowing-events/seed/${initialData.id}`)
       .then(r => r.json())
-      .then(events => setSowingEvents(events.filter(e => !INACTIVE.includes(e.sowingStatus))))
+      .then(events => {
+        setSowingEvents(events.filter(e => !INACTIVE.includes(e.sowingStatus)))
+
+        const eligible = events.filter(e => e.actualSowDate && e.emergenceDate)
+        if (eligible.length > 0) {
+          const totalDays = eligible.reduce((sum, e) => {
+            const days = Math.round(
+              (new Date(e.emergenceDate) - new Date(e.actualSowDate)) / (1000 * 60 * 60 * 24)
+            )
+            return sum + days
+          }, 0)
+          setAvgDaysToEmergence(Math.round(totalDays / eligible.length))
+          setEmergenceCount(eligible.length)
+        }
+      })
   }, [isEditing, initialData?.id])
 
   function set(field, value) {
@@ -281,6 +298,16 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent, onOpenSowin
               placeholder='e.g. 18 in' />
           </div>
 
+          {isEditing && avgDaysToEmergence !== null && (
+            <div className="field-wrap">
+              <label className="stat-label">Avg Days to Emergence</label>
+              <p className="stat-value">
+                {avgDaysToEmergence} days
+                <span className="stat-hint"> · {emergenceCount} sowing{emergenceCount !== 1 ? 's' : ''}</span>
+              </p>
+            </div>
+          )}
+
         </div>
       </section>
 
@@ -298,6 +325,15 @@ function SeedForm({ onSave, onCancel, initialData, onNewSowingEvent, onOpenSowin
         <button className="save-btn" onClick={handleSave}>{isEditing ? 'Save Changes' : 'Save Seed Packet'}</button>
         <button className="ghost-btn" onClick={onCancel}>Cancel</button>
       </div>
+
+      {isEditing && form.skipYear === new Date().getFullYear() && (
+        <div className="skip-year-notice">
+          <span>Skipped for {form.skipYear}</span>
+          <button className="ghost-btn" onClick={() => set('skipYear', null)}>
+            Un-skip (save to apply)
+          </button>
+        </div>
+      )}
 
       {isEditing && onNewSowingEvent && (
         <div className="sowing-action">

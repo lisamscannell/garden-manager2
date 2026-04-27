@@ -91,6 +91,8 @@ function DailyTasks() {
   const [gardenTasks, setGardenTasks] = useState([])
   const [editingTask, setEditingTask] = useState(null)
   const [upcomingTransplants, setUpcomingTransplants] = useState([])
+  const [sowingForSeed, setSowingForSeed] = useState(null)
+  const [seedForReturn, setSeedForReturn] = useState(null)
 
   useEffect(() => {
     fetch('/api/tasks').then(r => r.json()).then(setGardenTasks)
@@ -104,6 +106,17 @@ function DailyTasks() {
       if (transplants !== null) setUpcomingTransplants(transplants)
     })
   }, [])
+
+  async function handleSkipSeed(seed, e) {
+    e.stopPropagation()
+    const currentYear = new Date().getFullYear()
+    await fetch(`/api/seeds/${seed.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...seed, skipYear: currentYear }),
+    })
+    setResults(prev => prev.filter(s => s.id !== seed.id))
+  }
 
   async function handleSeedSave(seed) {
     const updated = await fetch(`/api/seeds/${seed.id}`, {
@@ -136,14 +149,38 @@ function DailyTasks() {
       initialData={editingSeed}
       onSave={handleSeedSave}
       onCancel={() => setEditingSeed(null)}
+      onNewSowingEvent={seed => { setEditingSeed(null); setSowingForSeed(seed) }}
+      onOpenSowingEvent={event => { setSeedForReturn(editingSeed); setEditingSeed(null); setEditingEvent(event) }}
+    />
+  }
+
+  if (sowingForSeed) {
+    return <SowingForm
+      seed={sowingForSeed}
+      onSave={() => { setSowingForSeed(null) }}
+      onCancel={() => { setSowingForSeed(null); setEditingSeed(sowingForSeed) }}
     />
   }
 
   if (editingEvent) {
     return <SowingForm
       initialData={editingEvent}
-      onSave={handleEventSave}
-      onCancel={() => setEditingEvent(null)}
+      onSave={updated => {
+        if (seedForReturn) {
+          setEditingEvent(null)
+          setEditingSeed(seedForReturn)
+          setSeedForReturn(null)
+        } else {
+          handleEventSave(updated)
+        }
+      }}
+      onCancel={() => {
+        setEditingEvent(null)
+        if (seedForReturn) {
+          setEditingSeed(seedForReturn)
+          setSeedForReturn(null)
+        }
+      }}
     />
   }
 
@@ -179,6 +216,10 @@ function DailyTasks() {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const thisYearStr = today.getFullYear().toString()
+      const currentYear = today.getFullYear()
+
+      // Remove seeds the user has chosen to skip for this calendar year
+      const activeSeeds = seeds.filter(s => s.skipYear !== currentYear)
 
       // Build tracking sets from this year's sowing events:
       //   seededThisYear     — any active event (planned OR actual) → excludes from first-start checks
@@ -190,9 +231,13 @@ function DailyTasks() {
 
       events.forEach(e => {
         const dateStr = e.actualSowDate || e.plannedSowDate
-        const isActive = !['Failed', 'Cancelled', 'Completed'].includes(e.sowingStatus)
+        const isOpenEvent = !['Failed', 'Cancelled', 'Completed'].includes(e.sowingStatus)
+        const isActiveOrAnticipated = ['Active', 'Anticipated'].includes(e.sowingStatus)
 
-        if (dateStr?.startsWith(thisYearStr) && isActive) {
+        // Suppress from "What Needs Starting?" if:
+        // - any non-terminal event with a date in the current year, OR
+        // - any Active or Anticipated event regardless of date (these mean "I'm handling this")
+        if ((dateStr?.startsWith(thisYearStr) && isOpenEvent) || isActiveOrAnticipated) {
           seededThisYear.add(e.seedId)
           if (dateStr >= `${thisYearStr}-07-01`) fallSeededThisYear.add(e.seedId)
         }
@@ -217,7 +262,7 @@ function DailyTasks() {
 
       // ── Spring/Summer first starts ──
       // Only for seeds that have Spring or Summer in their seasons
-      const springDue = seeds
+      const springDue = activeSeeds
         .filter(s => {
           const seasons = s.seasons ?? []
           if (!seasons.includes('Spring') && !seasons.includes('Summer')) return false
@@ -237,7 +282,7 @@ function DailyTasks() {
       // Only for seeds that have Fall in their seasons; use first frost of current year
       let fallDue = []
       if (weeksToFirstFrost !== null && !firstFrostPassed) {
-        fallDue = seeds
+        fallDue = activeSeeds
           .filter(s => {
             const seasons = s.seasons ?? []
             if (!seasons.includes('Fall')) return false
@@ -258,7 +303,7 @@ function DailyTasks() {
       // Stop showing if first frost has passed (growing season over)
       let successionStarts = []
       if (!firstFrostPassed) {
-        successionStarts = seeds
+        successionStarts = activeSeeds
           .filter(s => {
             if (!s.successionWeeks || Number(s.successionWeeks) === 0) return false
             if (s.status === 'Gone') return false
@@ -461,6 +506,12 @@ function DailyTasks() {
                         : <span className="badge badge-green">Due now</span>
                       }
                     </div>
+                    <button className="skip-year-btn" onClick={e => handleSkipSeed(seed, e)} title="Skip this year">
+                      Skip year
+                    </button>
+                    <button className="start-now-btn" onClick={e => { e.stopPropagation(); setSowingForSeed(seed) }} title="Start now">
+                      Start now
+                    </button>
                   </div>
                 )
               }
@@ -483,6 +534,12 @@ function DailyTasks() {
                         : <span className="badge badge-green">Due now</span>
                       }
                     </div>
+                    <button className="skip-year-btn" onClick={e => handleSkipSeed(seed, e)} title="Skip this year">
+                      Skip year
+                    </button>
+                    <button className="start-now-btn" onClick={e => { e.stopPropagation(); setSowingForSeed(seed) }} title="Start now">
+                      Start now
+                    </button>
                   </div>
                 )
               }
@@ -508,6 +565,12 @@ function DailyTasks() {
                       <span className="badge badge-green">Due now</span>
                     )}
                   </div>
+                  <button className="skip-year-btn" onClick={e => handleSkipSeed(seed, e)} title="Skip this year">
+                    Skip year
+                  </button>
+                  <button className="start-now-btn" onClick={e => { e.stopPropagation(); setSowingForSeed(seed) }} title="Start now">
+                    Start now
+                  </button>
                 </div>
               )
             })}

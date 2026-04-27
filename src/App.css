@@ -487,6 +487,24 @@
   resize: vertical;
 }
 
+/* Read-only stat fields (e.g. Avg Days to Emergence) */
+.stat-label {
+  color: var(--moss) !important;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--soil);
+}
+
+.stat-hint {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #8a7a6a;
+}
+
 .input-error {
   border-color: #c0392b !important;
 }
@@ -616,6 +634,56 @@
   background: var(--sprout);
 }
 
+/* Skip year button — on "What Needs Starting?" cards */
+.skip-year-btn {
+  background: none;
+  border: 1px solid #c0b0a0;
+  color: #8a7a6a;
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.skip-year-btn:hover {
+  color: var(--soil);
+  border-color: var(--soil);
+  background: var(--cream);
+}
+
+/* Start now button — on "What Needs Starting?" cards */
+.start-now-btn {
+  background: var(--moss);
+  border: none;
+  color: var(--cream);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 0.2rem 0.55rem;
+  border-radius: 99px;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.start-now-btn:hover {
+  background: var(--soil);
+}
+
+/* Skipped-for-year notice — on SeedForm */
+.skip-year-notice {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 0.65rem 1rem;
+  background: #fff8e8;
+  border: 1px solid #e8d898;
+  border-radius: 8px;
+  color: #7a6820;
+  font-size: 0.9rem;
+}
+
 .current-sowings {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
@@ -687,6 +755,11 @@
   font-size: 0.82rem;
   color: #9a8878;
   white-space: nowrap;
+}
+
+.emergence-expected {
+  color: var(--moss);
+  font-style: italic;
 }
 
 /* ── Mobile – Seed pages ── */

@@ -48,8 +48,10 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
     setForm(f => {
       const updated = { ...f, [field]: value }
       if (field === 'plannedSowDate' && value && !f.actualSowDate) {
-        const today = new Date().toISOString().split('T')[0]
-        updated.sowingStatus = value > today ? 'Anticipated' : 'Active'
+        updated.sowingStatus = 'Anticipated'
+      }
+      if (field === 'actualSowDate' && value) {
+        updated.sowingStatus = 'Active'
       }
       return updated
     })
@@ -176,6 +178,7 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
               onChange={e => set('sowingContainer', e.target.value)}>
               <option value="">Select…</option>
               <option>Cell Pack</option>
+              <option>Dense Container</option>
               <option>Soil Block</option>
               <option>Milk Jug Greenhouse</option>
               <option>Other</option>

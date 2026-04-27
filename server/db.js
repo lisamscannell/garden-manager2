@@ -70,4 +70,9 @@ try {
   db.exec('ALTER TABLE sowing_events ADD COLUMN plannedSowDate TEXT')
 } catch (_) { /* column already exists */ }
 
+// Add skipYear to existing databases that predate this column
+try {
+  db.exec('ALTER TABLE seeds ADD COLUMN skipYear INTEGER')
+} catch (_) { /* column already exists */ }
+
 export default db
