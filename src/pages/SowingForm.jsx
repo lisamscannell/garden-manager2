@@ -115,6 +115,16 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
 
   const todayStr = today()
 
+  const maturityDays = isEditing ? initialData.maturityDays : seed?.maturityDays
+  const seedCategory = isEditing ? initialData.category : seed?.category
+  const expectedHarvestDate = (() => {
+    if (seedCategory !== 'Edible') return null
+    if (!form.transplantDate || !maturityDays) return null
+    const d = new Date(form.transplantDate)
+    d.setDate(d.getDate() + Number(maturityDays))
+    return d.toISOString().split('T')[0]
+  })()
+
   return (
     <div className="seed-form-page">
       <div className="seed-form-header">
@@ -209,6 +219,16 @@ function SowingForm({ seed, initialData, onSave, onCancel }) {
             <input type="date" value={form.transplantDate}
               onChange={e => set('transplantDate', e.target.value)} />
           </div>
+
+          {expectedHarvestDate && (
+            <div className="field-wrap">
+              <label className="stat-label">Expected First Harvest</label>
+              <p className="stat-value">
+                {formatDate(expectedHarvestDate)}
+                <span className="stat-hint"> · {maturityDays}d maturity</span>
+              </p>
+            </div>
+          )}
 
           <div className="field-wrap full-width">
             <label>Notes</label>

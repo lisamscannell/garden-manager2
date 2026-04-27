@@ -104,7 +104,7 @@ app.get("/api/sowing-events", (req, res) => {
   const rows = db
     .prepare(
       `
-    SELECT se.*, s.variety, s.plantType
+    SELECT se.*, s.variety, s.plantType, s.maturityDays, s.category
     FROM sowing_events se
     JOIN seeds s ON se.seedId = s.id
     ORDER BY se.actualSowDate DESC
@@ -118,7 +118,9 @@ app.get("/api/sowing-events", (req, res) => {
 app.get("/api/sowing-events/seed/:seedId", (req, res) => {
   const rows = db
     .prepare(
-      "SELECT * FROM sowing_events WHERE seedId = ? ORDER BY actualSowDate DESC",
+      `SELECT se.*, s.maturityDays, s.category FROM sowing_events se
+       JOIN seeds s ON se.seedId = s.id
+       WHERE se.seedId = ? ORDER BY se.actualSowDate DESC`,
     )
     .all(req.params.seedId);
   res.json(rows);

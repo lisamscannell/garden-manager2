@@ -378,6 +378,7 @@
   color: var(--moss);
 }
 .badge-sky { background: var(--sprout); color: var(--soil); }
+.badge-sprout { background: var(--moss); color: var(--cream); }
 
 .delete-btn {
   background: none;
@@ -760,6 +761,127 @@
 .emergence-expected {
   color: var(--moss);
   font-style: italic;
+}
+
+/* ── Home Dashboard ─────────────────────────────────────────────────────── */
+
+.dashboard {
+  max-width: 720px;
+}
+
+/* Garden Pulse chips */
+.pulse-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
+}
+
+.pulse-chip {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--cream);
+  border: 1px solid rgba(74,103,65,0.15);
+  border-radius: 12px;
+  padding: 0.85rem 0.5rem;
+  text-align: center;
+}
+
+.pulse-value {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--soil);
+  line-height: 1;
+}
+
+.pulse-label {
+  font-size: 0.72rem;
+  color: #8a7a6a;
+  line-height: 1.3;
+}
+
+/* Dashboard sections */
+.dashboard-section {
+  margin-bottom: 1.75rem;
+}
+
+.dashboard-section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.1rem;
+  color: var(--soil);
+  margin: 0 0 0.75rem 0;
+}
+
+/* Dashboard cards */
+.dash-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff;
+  border: 1px solid rgba(74,103,65,0.15);
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.dash-card:hover {
+  background: var(--cream);
+}
+
+.dash-card-urgent {
+  border-left: 3px solid #e07b39;
+}
+
+.dash-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.dash-card-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--soil);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dash-card-sub {
+  font-size: 0.8rem;
+  color: #8a7a6a;
+}
+
+/* All clear state */
+.dashboard-all-clear {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #8a7a6a;
+}
+
+.dashboard-all-clear-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: var(--moss);
+  margin: 0 0 0.5rem 0;
+}
+
+.dashboard-all-clear-sub {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+/* ── Mobile – Dashboard ── */
+@media (max-width: 480px) {
+  .pulse-value { font-size: 1.5rem; }
+  .pulse-label { font-size: 0.68rem; }
 }
 
 /* ── Mobile – Seed pages ── */

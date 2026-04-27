@@ -54,15 +54,15 @@ function groupEvents(events) {
   const errors = []
 
   for (const e of events) {
-    if (e.sowingStatus === 'Active' && !e.emergenceDate) {
+    if (e.sowingStatus === 'Anticipated') {
+      anticipated.push(e)
+    } else if (e.sowingStatus === 'Transplanted' || (e.sowingStatus === 'Active' && e.transplantDate)) {
+      inGround.push(e)
+    } else if (e.sowingStatus === 'Active' && !e.emergenceDate) {
       watchForEmergence.push(e)
-    } else if (e.sowingStatus === 'Active' && e.emergenceDate && !e.transplantDate) {
+    } else if (e.sowingStatus === 'Active' && e.emergenceDate) {
       if (e.sowingMethod === 'Indoor Tray') activeIndoors.push(e)
       else activeOutdoors.push(e)
-    } else if (e.sowingStatus === 'Transplanted') {
-      inGround.push(e)
-    } else if (e.sowingStatus === 'Anticipated') {
-      anticipated.push(e)
     } else {
       errors.push(e)
     }
@@ -154,7 +154,7 @@ function SeedStarts() {
           <EventGroup label="Watch for Emergence" events={watchForEmergence} onClickEvent={setEditingEvent} avgDaysBySeed={avgDaysBySeed} />
           <EventGroup label="Active Starts (Indoors)" events={activeIndoors} onClickEvent={setEditingEvent} />
           <EventGroup label="Active Starts (Outdoors)" events={activeOutdoors} onClickEvent={setEditingEvent} />
-          <EventGroup label="Starts in Ground" events={inGround} onClickEvent={setEditingEvent} />
+          <EventGroup label="Plants in Ground" events={inGround} onClickEvent={setEditingEvent} />
           <EventGroup label="Anticipated Starts" events={anticipated} onClickEvent={setEditingEvent} />
           <EventGroup label="Errors" events={errors} onClickEvent={setEditingEvent} />
         </>
